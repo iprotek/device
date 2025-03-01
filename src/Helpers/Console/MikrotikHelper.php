@@ -73,11 +73,13 @@ class MikrotikHelper
         }
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
         try{
-            $query = new MikroTikQuery( $command );
+            //$query = new MikroTikQuery( $command );
+            
+            //$query = new Query('/ppp/secret/print');
+            //$query->where('name', 'markfuko2'); // Replace with actual username
+            //Log::error($query);
 
-            Log::error($command);
-
-            $response = $client->query($query)->read();
+            $response = $client->query($command)->read();
             
             Log::error($response);
 
