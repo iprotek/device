@@ -66,6 +66,29 @@ class MikrotikHelper
 
     }
 
+    public static function convertCliToApiQuery($cliCommand)
+    {
+        // Split the command into parts
+        $parts = explode(' ', trim($cliCommand));
+
+        // Extract the base command (e.g., "/ppp/secret/add")
+        $baseCommand = array_shift($parts);
+
+        // Create the API Query object
+        $query = new MikroTikQuery($baseCommand);
+
+        // Parse parameters (e.g., name="user1" password="1234")
+        foreach ($parts as $part) {
+            if (strpos($part, '=') !== false) {
+                list($key, $value) = explode('=', $part, 2);
+                $value = trim($value, '"'); // Remove quotes if present
+                $query->equal($key, $value);
+            }
+        }
+
+        return $query;
+    }
+
     //return 0 if not exists and -1 if error, -2 empty
     public static function checkAccount($client, $command){
         if($command && !trim($command)){
@@ -88,7 +111,8 @@ class MikrotikHelper
             */
 
             Log::error($command);
-            $query = new MikroTikQuery( '/ppp/secret/print where name="markfuko23"' );
+            $query = static::convertCliToApiQuery($command);
+            //$query = new MikroTikQuery( '/ppp/secret/print where name="markfuko23"' );
             $response = $client->query($query)->read();
 
 
@@ -110,7 +134,8 @@ class MikrotikHelper
         //SAMPLE COMMAND: /ppp/secret/add name="newuser" password="securepass" service="pppoe" profile="default"
         try{
 
-            $query = new MikroTikQuery( $command );
+            //$query = new MikroTikQuery( $command );
+            $query = static::convertCliToApiQuery($command);
             $client->query($query)->read();
             return ["status"=>1, "message"=>"User added Successfully"];
 
