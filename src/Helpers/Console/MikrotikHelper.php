@@ -110,7 +110,7 @@ class MikrotikHelper
             //$query = new MikroTikQuery('/ppp/secret/print');
             //$query->where('name', 'markfuko2'); // Replace with actual username
             //Log::error($query);
-            $query = new RouterOS\Query('/ppp/profile/print');
+            $query = new MikroTikQuery('/ppp/profile/print');
             $services = $client->query($query)->read();
             Log::error($services);
 
