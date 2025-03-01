@@ -81,7 +81,7 @@ class MikrotikHelper
         $is_where = false;
         foreach ($parts as $part) {
 
-            if($part == 'where'){
+            if(strtolower($part) == 'where'){
                 $is_where = true;
             }
 
@@ -129,7 +129,7 @@ class MikrotikHelper
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
             }
-            return ["status"=>0, "message"=>"Test completed"];
+            
         }catch(\Exception $ex){
             return ["status"=>0, "message"=>$ex->getMessage()];
         }
