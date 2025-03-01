@@ -74,6 +74,9 @@ class MikrotikHelper
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
         try{
             $query = new MikroTikQuery( $command );
+
+            Log::error($command);
+
             $response = $client->query($query)->read();
             
             Log::error($response);
