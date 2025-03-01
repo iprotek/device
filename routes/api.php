@@ -9,7 +9,7 @@ use iProtek\Core\Http\Controllers\AppVariableController;
 //});
 Route::prefix('api')->middleware('api')->name('api')->group(function(){ 
 
-    Route::prefix('message')->name('.message')->group(function(){
+    //Route::prefix('message')->name('.message')->group(function(){
 
       Route::prefix('group/{group_id}')->middleware(['pay.api'])->name('api')->group(function(){ 
           //FILE UPLOADS
@@ -17,7 +17,11 @@ Route::prefix('api')->middleware('api')->name('api')->group(function(){
 
           //FILE UPLOADS
           //include(__DIR__.'/api/meta-data.php'); 
-      });
+          
+          //Device
+          include(__DIR__.'/api/device.php');
+      
+        });
 
-    });
+    //});
 }); 
