@@ -91,6 +91,9 @@ class DeviceAccountController extends _CommonController
         $template = $trigger->register_command_template;
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            return $translate;
+        }
 
         //IF MIKROTIK
         if($device_access->type == 'mikrotik'){
