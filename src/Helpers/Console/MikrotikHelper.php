@@ -2,12 +2,13 @@
 namespace iProtek\Device\Helpers\Console;
 
 use DB; 
+use Illuminate\Http\Request; 
+use iProtek\Core\Helpers\PayModelHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use iProtek\Core\Models\Cms;
-use iProtek\Core\Enums\CmsType;
 use iProtek\Core\Enums\DeviceAccount;
 use iProtek\Core\Models\DeviceAccess;
+use iProtek\Core\Enums\DeviceTemplateTrigger;
 use MikrotikAPI\MikrotikAPI;
 use RouterOS\Client as MikroTikClient;
 use RouterOS\Query as MikroTikQuery;
@@ -65,8 +66,58 @@ class MikrotikHelper
 
     }
 
+    //return 0 if not exists and -1 if error, -2 empty
+    public static function checkAccount($client, $command){
+        if($command && !trim($command)){
+            return ["status"=>0, "message"=>"Empty Command"]; //EMPTY
+        }
+        //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
+        try{
+            $query = new MikroTikQuery( $command );
+            $response = $client->query($query)->read();
+            if(is_array($response) && count($response) > 0){
+                return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
+            }
+        }catch(\Exception $ex){
+            return ["status"=>0, "message"=>$ex->getMessage()];
+        }
+        return ["status"=>1, "message"=>"Account not exists", "id"=>0];
+    }
 
-    public static function register( DeviceAccess $deviceAccess, $command){
+    //
+    public static function registerAccount($client, $command){
+        if($command && !trim($command)){
+            return ["status"=>0, "message"=>"Empty Command"]; //EMPTY
+        }
+        //SAMPLE COMMAND: /ppp/secret/add name="newuser" password="securepass" service="pppoe" profile="default"
+        try{
+
+            $query = new MikroTikQuery( $command );
+            $client->query($query)->read();
+            return ["status"=>1, "message"=>"User added Successfully"];
+
+        }catch(\Exception $ex){
+            return ["status"=>0, "message"=>$ex->getMessage()];
+        }
+    }
+
+
+    public static function register( Request $request, DeviceTemplateTrigger $deviceTrigger, $command, $target_name, $target_id){
+
+        //VALIDATIONS
+        $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
+        $deviceAccess = $deviceTrigger->device_access;
+        if(!$deviceAccess){
+            return ["status"=>0, "message"=>"No Device found on trigger."];
+        }
+
+        //SPLIT COMMAND INTO 2
+        $lines = array_filter( explode("\n", $command ) );
+
+
+        $checkRegCommand = $lines[0] ?? "";
+        $regCommand = $lines[1] ?? "";
+
 
         if($deviceAccess->type != 'mikrotik'){
             return [ "status"=>0, "message"=>"Invalid Device"];
@@ -92,17 +143,64 @@ class MikrotikHelper
         //CHECK EXISTS?
 
         //REGISTER IF NOT EXISTS
+        $checkRegResult = static::checkAccount($client, $checkRegCommand);
+        if($checkRegResult["status"] != 1){
+            return $checkRegResult;
+        }
+        else if($checkRegResult["id"] !== 0){
 
-        
+            //CHECK IF ACCOUNT IS REGISTERED USING THE TRIGGER ID
+            $exists = DeviceAccount::where([
+                "group_id"=>$deviceTrigger->group_id,
+                "device_template_trigger_id"=>$deviceTrigger->id,
+                "target_name"=>$target_name,
+                //"target_id"=>$target_id,
+                "account_id"=>$checkRegResult["id"]
+            ])->first();
 
+            if($exists){
+                return ["status"=>1, "message"=>"Account Already been linked."];
+            }
 
+            //SAVING LINKED ACCOUNT
+            PayModelHelper::create( DeviceAccount::class, $request, [
+                "device_template_trigger_id"=>$deviceTrigger->id,
+                "target_name"=>$target_name,
+                "target_id"=>$target_id,
+                "account_id"=>$checkRegResult["id"],
+                "is_active"=>true,
+                "active_info"=>"Linked account"
+            ]);
 
-
+            return ["status"=>1, "message"=>"Existed account linked."];
+        } 
 
         //REGISTER
+        $registerResult = static::registerAccount($client, $regCommand);
+        if($registerResult["status"] == 1){
+            
+            //CHECK AGAIN USING USERNAME IF EXISTS
+            $checkRegResult = static::checkAccount($client, $checkRegCommand);
+            if($checkRegResult["status"] == 1 && $checkRegResult["id"] != 0){
+
+                PayModelHelper::create( DeviceAccount::class, $request, [
+                    "device_template_trigger_id"=>$deviceTrigger->id,
+                    "target_name"=>$target_name,
+                    "target_id"=>$target_id,
+                    "account_id"=>$checkRegResult["id"],
+                    "is_active"=>true,
+                    "active_info"=>"Registeration Successfull"
+                ]);
 
 
 
+                return ["status"=>0, "message"=>"Registered Successfully"];
+            } 
+
+
+        }
+
+        return ["status"=>0, "message"=>"failed to register"];
     }
 
     public static function update($command, DeviceAccount $deviceAccount){

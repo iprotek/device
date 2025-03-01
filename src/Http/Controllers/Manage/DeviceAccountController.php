@@ -94,7 +94,13 @@ class DeviceAccountController extends _CommonController
 
         //IF MIKROTIK
         if($device_access->type == 'mikrotik'){
-
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::register(
+                $request,
+                $trigger,
+                $translate,
+                $request->target_name,
+                $request->target_id
+            );
         }
         else{
 
@@ -122,7 +128,7 @@ class DeviceAccountController extends _CommonController
 
         //ADD DEVICE ACCOUNT
 
-        return ["status"=>0, "message"=>"Device Registration Not available." ];
+        return ["status"=>0, "message"=>"Device Registration Not available in this type." ];
  
 
     }
