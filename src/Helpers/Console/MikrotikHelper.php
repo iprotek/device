@@ -80,7 +80,7 @@ class MikrotikHelper
             //Log::error($query);
             Log::error($command);
 
-            //$response = $client->query($command)->read();
+            //$response = $client->query($query)->read();
             $response = $client->query($command)->read();
             
             Log::error($response);
