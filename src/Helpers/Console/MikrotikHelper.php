@@ -75,6 +75,9 @@ class MikrotikHelper
         try{
             $query = new MikroTikQuery( $command );
             $response = $client->query($query)->read();
+            
+            Log::error($response);
+
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
             }
