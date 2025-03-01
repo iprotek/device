@@ -75,11 +75,11 @@ class MikrotikHelper
         try{
             //$query = new MikroTikQuery( $command );
             
-            //$query = new Query('/ppp/secret/print');
-            //$query->where('name', 'markfuko2'); // Replace with actual username
+            $query = new Query('/ppp/secret/print');
+            $query->where('name', 'markfuko2'); // Replace with actual username
             //Log::error($query);
 
-            $response = $client->query($command)->read();
+            $response = $client->query($query)->read();
             
             Log::error($response);
 
