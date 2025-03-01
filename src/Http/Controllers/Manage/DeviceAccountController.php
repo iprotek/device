@@ -65,7 +65,7 @@ class DeviceAccountController extends _CommonController
 
 
         //GET TEMPLATE TRIGGER INFO
-        $trigger = PayModelHelper::with(['device_access'])->get(DeviceTemplateTrigger::class, $request)->where('is_active', true)->first();
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->first();
 
         if(!$trigger || $trigger->is_active !== true ){
             return ["status"=>0,"message"=>"Device Trigger not available."];
