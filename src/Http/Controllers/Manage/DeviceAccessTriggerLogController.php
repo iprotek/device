@@ -4,8 +4,9 @@ namespace iProtek\Device\Http\Controllers\Manage;
 
 use Illuminate\Http\Request;
 use iProtek\Core\Http\Controllers\_Common\_CommonController;
-use iProtek\Device\Models\DeviceAccess;
 use iProtek\Core\Helpers\PayModelHelper;
+
+use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Helpers\Console\SshHelper;
 use iProtek\Device\Models\DeviceAccessTriggerLog;

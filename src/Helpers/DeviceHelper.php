@@ -1,10 +1,10 @@
 <?php
-namespace iProtek\Core\Helpers;
+namespace iProtek\Device\Helpers;
 
 use DB; 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use iProtek\Core\Helpers\DeviceVariableHelper;
+use iProtek\Device\Helpers\DeviceVariableHelper;
 
 class DeviceHelper
 { 
