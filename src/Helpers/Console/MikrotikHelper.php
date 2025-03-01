@@ -150,6 +150,12 @@ class MikrotikHelper
             $query = static::convertCliToApiQuery($command);
             $response =  $client->query($query)->read();
             Log::error($response);
+
+            if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
+                return ["status"=>0, "message"=> $response["after"]["message"]];
+            }
+
+
             return ["status"=>1, "message"=>"User added Successfully"];
 
         }catch(\Exception $ex){
@@ -256,6 +262,8 @@ class MikrotikHelper
             } 
 
 
+        }else{
+            return $registerResult;
         }
 
         return ["status"=>0, "message"=>"failed to register"];
