@@ -106,23 +106,13 @@ class MikrotikHelper
         }
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
         try{ 
-
-            //$query = new MikroTikQuery('/ppp/secret/print');
-            //$query->where('name', 'markfuko2'); // Replace with actual username
-            //Log::error($query);
-            $query = new MikroTikQuery('/interface/print');
-            $services = $client->query($query)->read();
-            Log::error($services);
-
-
-            Log::error($command); 
-
-            Log::error($command);
-            $query = static::convertCliToApiQuery($command);
-            //$query = new MikroTikQuery( '/ppp/secret/print where name="markfuko23"' );
+ 
+            $query = static::convertCliToApiQuery($command); 
             $response = $client->query($query)->read();
             
-            Log::error($response);
+            if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
+                return ["status"=>0, "message"=> $response["after"]["message"]];
+            }
 
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
@@ -143,10 +133,10 @@ class MikrotikHelper
         try{
 
             //$query = new MikroTikQuery( $command );
-            Log::error($command);
+            //Log::error($command);
             $query = static::convertCliToApiQuery($command);
             $response =  $client->query($query)->read();
-            Log::error($response);
+            //Log::error($response);
 
             if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
                 return ["status"=>0, "message"=> $response["after"]["message"]];
@@ -250,12 +240,12 @@ class MikrotikHelper
                     "target_id"=>$target_id,
                     "account_id"=>$checkRegResult["id"],
                     "is_active"=>true,
-                    "active_info"=>"Registeration Successfull"
+                    "active_info"=>"Regisration Successfull"
                 ]);
 
 
 
-                return ["status"=>0, "message"=>"Registered Successfully"];
+                return ["status"=>1, "message"=>"Registered Successfully"];
             } 
 
 
