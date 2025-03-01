@@ -129,7 +129,7 @@ class MikrotikHelper
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
             }
-            
+
         }catch(\Exception $ex){
             return ["status"=>0, "message"=>$ex->getMessage()];
         }
@@ -145,11 +145,14 @@ class MikrotikHelper
         try{
 
             //$query = new MikroTikQuery( $command );
+            Log::error($command);
             $query = static::convertCliToApiQuery($command);
             $client->query($query)->read();
             return ["status"=>1, "message"=>"User added Successfully"];
 
         }catch(\Exception $ex){
+            
+            Log::error($ex->getMessage());
             return ["status"=>0, "message"=>$ex->getMessage()];
         }
     }
