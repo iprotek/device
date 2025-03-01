@@ -124,7 +124,8 @@ class MikrotikHelper
             $query = static::convertCliToApiQuery($command);
             //$query = new MikroTikQuery( '/ppp/secret/print where name="markfuko23"' );
             $response = $client->query($query)->read();
-
+            
+            Log::error($response);
 
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
@@ -147,7 +148,8 @@ class MikrotikHelper
             //$query = new MikroTikQuery( $command );
             Log::error($command);
             $query = static::convertCliToApiQuery($command);
-            $client->query($query)->read();
+            $response =  $client->query($query)->read();
+            Log::error($response);
             return ["status"=>1, "message"=>"User added Successfully"];
 
         }catch(\Exception $ex){
