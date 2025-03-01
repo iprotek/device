@@ -73,6 +73,7 @@ class MikrotikHelper
         }
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
         try{
+            /*
             //$query = new MikroTikQuery( $command );
             
             //$query = new MikroTikQuery('/ppp/secret/print');
@@ -84,6 +85,12 @@ class MikrotikHelper
             $response = $client->query($command)->read();
             
             Log::error($response);
+            */
+
+            Log::error($command);
+            $query = new MikroTikQuery( '/ppp/secret/print where name="markfuko23"' );
+            $response = $client->query($query)->read();
+
 
             if(is_array($response) && count($response) > 0){
                 return [ "status"=>1, "message"=>"Account Found!", "id"=> $response[0][".id"], "account_info"=>$response[0] ];
