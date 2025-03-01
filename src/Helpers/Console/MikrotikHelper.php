@@ -14,7 +14,7 @@ use RouterOS\Query as MikroTikQuery;
 
 class MikrotikHelper
 {  
-    public static function credential_login_check(array $credential){
+    public static function credential_login_check(array $credential, $get_client = false){
         //CREDENTIAL CHECK
         //host
         //user
@@ -53,7 +53,11 @@ class MikrotikHelper
 
             //Log::error($response);
             //print_r($response);
-            return [ "status"=>1, "message"=> json_encode($response), "command"=>$command ];
+            if($get_client){
+                return ["status" =>1, "client"=>$client];
+            }
+
+            return [ "status"=>1, "message"=>"Login Success" ,"result"=>json_encode($response), "command"=>$command ];
         } catch (\Exception $e) {
             //Log::error( $e->getMessage() );
             return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
@@ -76,6 +80,22 @@ class MikrotikHelper
             "port"=>$deviceAccess->port,
             "is_ssl"=>$deviceAccess->is_ssl
         ];
+
+        //LOGIN VALIDATION
+        $checkLogin = static::credential_login_check($credential, true);
+        if($checkLogin["status"] !== 1 ){
+            return $checkLogin;
+        }
+
+        $client = $checkLogin["client"];
+
+        //CHECK EXISTS?
+
+        //REGISTER IF NOT EXISTS
+
+        
+
+
 
 
 
