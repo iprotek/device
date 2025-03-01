@@ -105,20 +105,17 @@ class MikrotikHelper
             return ["status"=>0, "message"=>"Empty Command"]; //EMPTY
         }
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
-        try{
-            /*
-            //$query = new MikroTikQuery( $command );
-            
+        try{ 
+
             //$query = new MikroTikQuery('/ppp/secret/print');
             //$query->where('name', 'markfuko2'); // Replace with actual username
             //Log::error($query);
-            Log::error($command);
+            $query = new RouterOS\Query('/ppp/profile/print');
+            $services = $client->query($query)->read();
+            Log::error($services);
 
-            //$response = $client->query($query)->read();
-            $response = $client->query($command)->read();
-            
-            Log::error($response);
-            */
+
+            Log::error($command); 
 
             Log::error($command);
             $query = static::convertCliToApiQuery($command);
