@@ -1,0 +1,36 @@
+{
+    "name": "iprotek/device",
+    "description": "A remote control where you can handle command for your device.",
+    "keywords": ["laravel", "plugin", "device"],
+    "authors": [
+        {
+            "name": "Joseph Aguilar",
+            "email": "admin@iprotek.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "iProtek\\Device\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.0.0",
+        "illuminate/support": "^8.0|^9.0|^10.0"
+    },
+    "type": "library",  
+    "license": "MIT", 
+    "require-dev": {
+        "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0"
+    },
+    "suggest": {
+        "ext-intl": "Use this to handle Devices by accessing thru SSH, Mikrotik and Powershell"
+    }, 
+    "extra": {
+        "laravel": {
+            "providers": [
+                "iProtek\\Device\\DevicePackageServiceProvider"
+            ]
+        }
+    },
+    "version": "1.0.0" 
+}
