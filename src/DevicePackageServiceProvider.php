@@ -3,6 +3,7 @@
 namespace iProtek\Device;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate; 
 
 class DevicePackageServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,11 @@ class DevicePackageServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
+        //DEFINE GATES
+
+        //DEFINE ROLES BASE ON XRAC
+
         // Bootstrap package services
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
