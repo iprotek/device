@@ -78,6 +78,7 @@ class MikrotikHelper
             $query = new Query('/ppp/secret/print');
             $query->where('name', 'markfuko2'); // Replace with actual username
             //Log::error($query);
+            Log::error($query);
 
             $response = $client->query($query)->read();
             
