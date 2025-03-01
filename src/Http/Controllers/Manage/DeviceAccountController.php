@@ -94,6 +94,9 @@ class DeviceAccountController extends _CommonController
         if(is_array($translate) && $translate["status"] == 0){
             return $translate;
         }
+        if( !is_string( $translate)){
+            return ["status"=>0, "message"=>"Invalid Command"];
+        }
 
         //IF MIKROTIK
         if($device_access->type == 'mikrotik'){
