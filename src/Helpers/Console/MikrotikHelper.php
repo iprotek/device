@@ -78,11 +78,21 @@ class MikrotikHelper
         $query = new MikroTikQuery($baseCommand);
 
         // Parse parameters (e.g., name="user1" password="1234")
+        $is_where = false;
         foreach ($parts as $part) {
+
+            if($part == 'where'){
+                $is_where = true;
+            }
+
+
             if (strpos($part, '=') !== false) {
                 list($key, $value) = explode('=', $part, 2);
                 $value = trim($value, '"'); // Remove quotes if present
-                $query->equal($key, $value);
+                if($is_where)
+                    $query->where($key, $value);
+                else
+                    $query->equal($key, $value);
             }
         }
 
