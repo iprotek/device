@@ -20,10 +20,12 @@ class DeviceAccount extends Model
         "target_id",
         "is_active",
         "account_id",
-        "active_info"
+        "active_info",
+        "is_auto_trigger"
     ];
 
     protected $casts = [
-        "is_active" => "boolean"
+        "is_active" => "boolean",
+        "is_auto_trigger" => "boolean"
     ];
 }
