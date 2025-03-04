@@ -96,7 +96,11 @@ class MikrotikHelper
             }
         }
 
-        return $query;
+        //return $query;
+        return[
+            "query"=>$query,
+            "base_command"=>$baseCommand
+        ];
     }
 
     //return 0 if not exists and -1 if error, -2 empty
@@ -108,7 +112,7 @@ class MikrotikHelper
         try{ 
  
             $query = static::convertCliToApiQuery($command); 
-            $response = $client->query($query)->read();
+            $response = $client->query($query['query'])->read();
             
             if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
                 return ["status"=>0, "message"=> $response["after"]["message"]];
@@ -135,7 +139,7 @@ class MikrotikHelper
             //$query = new MikroTikQuery( $command );
             //Log::error($command);
             $query = static::convertCliToApiQuery($command);
-            $response =  $client->query($query)->read();
+            $response =  $client->query($query['query'])->read();
             //Log::error($response);
 
             if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
@@ -328,7 +332,7 @@ class MikrotikHelper
 
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query)->read();
+                $response =  $client->query($query['query'])->read();
                 //Error popup
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
                     return["status"=>0,"message"=>$response['after']['message']];
@@ -377,7 +381,7 @@ class MikrotikHelper
             foreach($command_lines as $command){
 
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query)->read(); 
+                $response =  $client->query($query['query'])->read(); 
                 
                 //Error pop up
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -427,7 +431,7 @@ class MikrotikHelper
             foreach($command_lines as $command){
  
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query)->read();
+                $response =  $client->query($query['query'])->read();
  
                 //Error Popup
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -474,9 +478,20 @@ class MikrotikHelper
             
             $command_lines = $result['command_lines'];
 
+            $activeUsers = [];
+
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query)->read();
+                $base_command = $query['base_command'];
+
+                if($base_command == '/ppp/active/remove' && count($activeUsers)<= 0){
+                    continue;
+                }
+                $response =  $client->query($query['query'])->read();
+                
+                if($query['base_command'] == '/ppp/active/print'){
+                    $activeUsers = $response;
+                }
                 
                 //Error popup
                 
