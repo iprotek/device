@@ -152,6 +152,51 @@ class MikrotikHelper
         }
     }
 
+    public static function commandResultValidation($commandStr, DeviceAccount $deviceAccount){
+        
+        //VALIDATIONS
+        $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceAccount->device_template_trigger_id);
+        $deviceAccess = $deviceTrigger->device_access;
+        if(!$deviceAccess){
+            return ["status"=>0, "message"=>"No Device found on trigger."];
+        }
+
+        //SPLIT COMMAND INTO 2
+        $lines = array_filter( explode("\n", $command ) );
+        if(count($lines)<= 0){
+            return ["status"=>0, "message"=>"Empty Command"];
+        }
+
+
+        if($deviceAccess->type != 'mikrotik'){
+            return [ "status"=>0, "message"=>"Invalid Device"];
+        }
+
+        //CHECK ACCOUNT USING USERNAME
+        $credential = [
+            "host"=>$deviceAccess->host,
+            "user"=>$deviceAccess->user,
+            "password"=>$deviceAccess->password,
+            "port"=>$deviceAccess->port,
+            "is_ssl"=>$deviceAccess->is_ssl
+        ];
+
+        //LOGIN VALIDATION
+        $checkLogin = static::credential_login_check($credential, true);
+        if($checkLogin["status"] !== 1 ){
+            return $checkLogin;
+        }
+
+        $client = $checkLogin["client"];
+
+        return [ 
+            "status"=>1, 
+            "device_trigger"=>$deviceTrigger, 
+            "command_lines"=>$lines, 
+            "device_access"=>$deviceAccess,
+            "client"=>$client
+        ];
+    }
 
     public static function register( Request $request, DeviceTemplateTrigger $deviceTrigger, $command, $target_name, $target_id){
 
@@ -256,19 +301,48 @@ class MikrotikHelper
         return ["status"=>0, "message"=>"failed to register"];
     }
 
-    public static function update($command, DeviceAccount $deviceAccount){
+    public static function update(  DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
+        
+        $result = static::commandResultValidation($commandStr, $deviceAccount);
+
+        if($result['status'] != 1){
+            return $result;
+        }
+
+        $client = $result['client'];
+
+
+
+    }
+
+
+    public static function active( DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
+
+        //VALIDATIONS
+        $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
+        $deviceAccess = $deviceTrigger->device_access;
+        if(!$deviceAccess){
+            return ["status"=>0, "message"=>"No Device found on trigger."];
+        }
+
+        //SPLIT COMMAND INTO 2
+        $lines = array_filter( explode("\n", $command ) );
+
+
+        $checkRegCommand = $lines[0] ?? "";
+        $regCommand = $lines[1] ?? "";
+
+
+        if($deviceAccess->type != 'mikrotik'){
+            return [ "status"=>0, "message"=>"Invalid Device"];
+        }
+    }
+
+    public static function inactive(DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
         
     }
 
-    public static function active($command, DeviceAccount $deviceAccount){
-
-    }
-
-    public static function inactive($command, DeviceAccount $deviceAccount){
-        
-    }
-
-    public static function remove($command, DeviceAccount $deviceAccount){
+    public static function remove(DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
         
     }
 

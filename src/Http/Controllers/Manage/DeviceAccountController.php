@@ -157,6 +157,20 @@ class DeviceAccountController extends _CommonController
 
     public function update_account(Request $request){
 
+        $this->validate($request, [
+            "target_id"=>"required",
+            "target_name"=>"required",
+            "device_template_trigger_id"=>"required",
+            "device_account_id"=>"required"
+        ]);
+
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        if(!$device_account){
+            return ["status"=>0, "message"=>"Permission Denied"];
+        }
+
+
+        return ["status"=>1, "message"=>"Successfully Active"]; 
     }
     public function update_account_preview(Request $request){
         $this->validate($request, [
@@ -177,10 +191,20 @@ class DeviceAccountController extends _CommonController
     
     public function set_active_account(Request $request){ 
 
-        //TODO:: device_template_trigger_id
+        $this->validate($request, [
+            "target_id"=>"required",
+            "target_name"=>"required",
+            "device_template_trigger_id"=>"required",
+            "device_account_id"=>"required"
+        ]);
 
-        //check account if existed
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        if(!$device_account){
+            return ["status"=>0, "message"=>"Permission Denied"];
+        }
 
+
+        return ["status"=>1, "message"=>"Successfully Updated"]; 
 
     }    
     public function set_active_account_preview(Request $request){ 
@@ -202,11 +226,21 @@ class DeviceAccountController extends _CommonController
     }
 
     public function set_inactive_account(Request $request){
+        
+        $this->validate($request, [
+            "target_id"=>"required",
+            "target_name"=>"required",
+            "device_template_trigger_id"=>"required",
+            "device_account_id"=>"required"
+        ]);
 
-        //TODO:: device_template_trigger_id
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        if(!$device_account){
+            return ["status"=>0, "message"=>"Permission Denied"];
+        }
 
-        //check account if existed
 
+        return ["status"=>1, "message"=>"Successfully Updated"]; 
 
     }
     public function set_inactive_account_preview(Request $request){
@@ -229,7 +263,12 @@ class DeviceAccountController extends _CommonController
     
     public function remove_account(Request $request){
 
-        //TODO:: device_template_trigger_id
+        $this->validate($request, [
+            "target_id"=>"required",
+            "target_name"=>"required",
+            "device_template_trigger_id"=>"required",
+            "device_account_id"=>"required"
+        ]);
 
 
 
