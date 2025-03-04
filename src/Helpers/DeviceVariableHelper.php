@@ -81,7 +81,7 @@ class DeviceVariableHelper
             //$str = static::event_time_setup($event->utc_start, $format, $timezone, $offset_mins); 
             $str = "0";
             if( $deviceAccount ){
-                $str = $deviceAccount->id;
+                $str = $deviceAccount->account_id;
             }
             $result = str_replace($matching_string, $str, $sample);
 
