@@ -335,7 +335,7 @@ class MikrotikHelper
             }
 
             if($request){
-                PayModelHelper::update($deviceAccount, $request, [])->save();
+                PayModelHelper::update($deviceAccount, $request, [ ])->save();
             } else{
                 $deviceAccount->save();
             }
@@ -382,8 +382,11 @@ class MikrotikHelper
             }
 
             if($request){
-                PayModelHelper::update($deviceAccount, $request, [])->save();
+                PayModelHelper::update($deviceAccount, $request, [
+                    "is_active"=>true
+                ])->save();
             }else{
+                $deviceAccount->is_active = true;
                 $deviceAccount->save();
             }
 
@@ -426,8 +429,11 @@ class MikrotikHelper
             }
 
             if($request){
-                PayModelHelper::update($deviceAccount, $request, [])->save();
+                PayModelHelper::update($deviceAccount, $request, [
+                    "is_active"=>false
+                ])->save();
             }else{
+                $deviceAccount->is_active = false;
                 $deviceAccount->save();
             }
 

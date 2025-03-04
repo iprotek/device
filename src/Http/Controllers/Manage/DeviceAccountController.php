@@ -256,23 +256,13 @@ class DeviceAccountController extends _CommonController
 
         
         if($device_access->type == 'mikrotik'){
-            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::active(
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::active(
                 $device_account, 
                 $translate,
                 $request->target_name,
                 $request->target_id,
                 $request
             );
-
-            if($result["status"] == 1){
-                PayModelHelper::update($device_account, $request, ["is_active"=>true])->save();
-            }else{
-                $device_account->is_active = true;
-                $device_account->save();
-            }
-
-
-            return $result;
         }
         else{
 
