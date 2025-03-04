@@ -27,7 +27,7 @@ class DeviceAccount extends Model
     protected $casts = [
         "is_active" => "boolean",
         "is_auto_trigger" => "boolean",
-        "created_at"=>"datetime:Y-m-d H:i:s",
-        "updated_at"=>"datetime:Y-m-d H:i:s"
+        "created_at"=>"datetime:F j,y h:i a",
+        "updated_at"=>"datetime:F j,y H:i a"
     ];
 }
