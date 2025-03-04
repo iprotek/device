@@ -51,7 +51,7 @@ class DeviceAccountController extends _CommonController
         $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where('id', $request->device_account_id);
         
         if(!$deviceAccount){
-            return ["status"=>0, "message"=>"Account not found"];
+            return ["status"=>0, "message"=>"Permission Denied"];
         }
 
 
