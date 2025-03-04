@@ -65,7 +65,7 @@ class DeviceAccountController extends _CommonController
 
 
         //GET TEMPLATE TRIGGER INFO
-        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->first();
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($deviceAccount->device_template_trigger_id);
 
         if(!$trigger || $trigger->is_active !== true ){
             return ["status"=>0,"message"=>"Device Trigger not available."];
@@ -164,13 +164,45 @@ class DeviceAccountController extends _CommonController
             "device_account_id"=>"required"
         ]);
 
+        
+        //GET TEMPLATE TRIGGER INFO
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $device_access = $trigger->device_access;
+        if(!$trigger || $trigger->is_active !== true ){
+            return ["status"=>0,"message"=>"Device Trigger not available."];
+        }
+
         $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
+        $template = $trigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            return $translate;
+        }
+        if( !is_string( $translate)){
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
 
-        return ["status"=>1, "message"=>"Successfully Active"]; 
+        
+        if($device_access->type == 'mikrotik'){
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::update(
+                $device_account, 
+                $translate,
+                $request->target_name,
+                $request->target_id,
+                $request
+            );
+        }
+        else{
+
+        }
+
+
+        return ["status"=>0, "message"=>"Update Error. Device Not Found."]; 
     }
     public function update_account_preview(Request $request){
         $this->validate($request, [
@@ -198,10 +230,44 @@ class DeviceAccountController extends _CommonController
             "device_account_id"=>"required"
         ]);
 
+        
+        //GET TEMPLATE TRIGGER INFO
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $device_access = $trigger->device_access;
+
+        if(!$trigger || $trigger->is_active !== true ){
+            return ["status"=>0,"message"=>"Device Trigger not available."];
+        }
+
         $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
+
+        $template = $trigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            return $translate;
+        }
+        if( !is_string( $translate)){
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
+
+        
+        if($device_access->type == 'mikrotik'){
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::active(
+                $device_account, 
+                $translate,
+                $request->target_name,
+                $request->target_id,
+                $request
+            );
+        }
+        else{
+
+        }
+
 
 
         return ["status"=>1, "message"=>"Successfully Set Active."]; 
@@ -234,11 +300,43 @@ class DeviceAccountController extends _CommonController
             "device_account_id"=>"required"
         ]);
 
+        
+        //GET TEMPLATE TRIGGER INFO
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $device_access = $trigger->device_access;
+
+        if(!$trigger || $trigger->is_active !== true ){
+            return ["status"=>0,"message"=>"Device Trigger not available."];
+        }
+
         $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
+        $template = $trigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            return $translate;
+        }
+        if( !is_string( $translate)){
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
+
+        
+        if($device_access->type == 'mikrotik'){
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::inactive(
+                $device_account, 
+                $translate,
+                $request->target_name,
+                $request->target_id,
+                $request
+            );
+        }
+        else{
+
+        }
 
         return ["status"=>1, "message"=>"Successfully Set Inactive."]; 
 
@@ -271,12 +369,45 @@ class DeviceAccountController extends _CommonController
         ]);
 
 
+        
+        
+        //GET TEMPLATE TRIGGER INFO
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $device_access = $trigger->device_access;
+
+        if(!$trigger || $trigger->is_active !== true ){
+            return ["status"=>0,"message"=>"Device Trigger not available."];
+        }
+
         $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
+        $template = $trigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            return $translate;
+        }
+        if( !is_string( $translate)){
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
 
+
+        
+        if($device_access->type == 'mikrotik'){
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::remove(
+                $device_account, 
+                $translate,
+                $request->target_name,
+                $request->target_id,
+                $request
+            );
+        }
+        else{
+
+        }
         return ["status"=>1, "message"=>"Successfully Removed"]; 
 
     }

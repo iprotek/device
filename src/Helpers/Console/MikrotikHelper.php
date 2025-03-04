@@ -147,7 +147,7 @@ class MikrotikHelper
 
         }catch(\Exception $ex){
             
-            Log::error($ex->getMessage());
+           // Log::error($ex->getMessage());
             return ["status"=>0, "message"=>$ex->getMessage()];
         }
     }
@@ -301,7 +301,7 @@ class MikrotikHelper
         return ["status"=>0, "message"=>"failed to register"];
     }
 
-    public static function update(  DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
+    public static function update(  DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
         
         $result = static::commandResultValidation($commandStr, $deviceAccount);
 
@@ -311,39 +311,148 @@ class MikrotikHelper
 
         $client = $result['client'];
 
+        try{
+
+            //$query = new MikroTikQuery( $command );
+            //Log::error($command);
+            $command_lines = $result['command_lines'];
+
+            foreach($command_lines as $command){
+                $query = static::convertCliToApiQuery($command);
+                $response =  $client->query($query)->read();
+                //Log::error($response); 
+            }
+
+            if($request){
+                PayModelHelper::update($deviceAccount, $request, [])->save();
+            } else{
+                $deviceAccount->save();
+            }
 
 
-    }
+            return ["status"=>1, "message"=>"Update Completed."];
 
-
-    public static function active( DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
-
-        //VALIDATIONS
-        $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
-        $deviceAccess = $deviceTrigger->device_access;
-        if(!$deviceAccess){
-            return ["status"=>0, "message"=>"No Device found on trigger."];
+        }catch(\Exception $ex){
+            
+            //Log::error($ex->getMessage());
+            return ["status"=>0, "message"=>$ex->getMessage()];
         }
 
-        //SPLIT COMMAND INTO 2
-        $lines = array_filter( explode("\n", $command ) );
+    }
 
 
-        $checkRegCommand = $lines[0] ?? "";
-        $regCommand = $lines[1] ?? "";
+    public static function active( DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
+
+        $result = static::commandResultValidation($commandStr, $deviceAccount);
+
+        if($result['status'] != 1){
+            return $result;
+        }
+
+        $client = $result['client'];
+
+        try{
+
+            //$query = new MikroTikQuery( $command );
+            //Log::error($command);
+            $command_lines = $result['command_lines'];
+
+            foreach($command_lines as $command){
+                $query = static::convertCliToApiQuery($command);
+                $response =  $client->query($query)->read();
+                //Log::error($response); 
+            }
+
+            if($request){
+                PayModelHelper::update($deviceAccount, $request, [])->save();
+            }else{
+                $deviceAccount->save();
+            }
 
 
-        if($deviceAccess->type != 'mikrotik'){
-            return [ "status"=>0, "message"=>"Invalid Device"];
+            return ["status"=>1, "message"=>"Set Active Completed."];
+
+        }catch(\Exception $ex){
+            
+            //Log::error($ex->getMessage());
+            return ["status"=>0, "message"=>$ex->getMessage()];
         }
     }
 
-    public static function inactive(DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
+    public static function inactive(DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
         
+        $result = static::commandResultValidation($commandStr, $deviceAccount);
+
+        if($result['status'] != 1){
+            return $result;
+        }
+
+        $client = $result['client'];
+
+        try{
+
+            //$query = new MikroTikQuery( $command );
+            //Log::error($command);
+            $command_lines = $result['command_lines'];
+
+            foreach($command_lines as $command){
+                $query = static::convertCliToApiQuery($command);
+                $response =  $client->query($query)->read();
+                //Log::error($response); 
+            }
+
+            if($request){
+                PayModelHelper::update($deviceAccount, $request, [])->save();
+            }else{
+                $deviceAccount->save();
+            }
+
+
+            return ["status"=>1, "message"=>"Set Inactive Completed."];
+
+        }catch(\Exception $ex){
+            
+            //Log::error($ex->getMessage());
+            return ["status"=>0, "message"=>$ex->getMessage()];
+        }
     }
 
-    public static function remove(DeviceAccount $deviceAccount, $command, $target_name, $target_id, Request $request){
-        
+    public static function remove(DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
+      
+        $result = static::commandResultValidation($commandStr, $deviceAccount);
+
+        if($result['status'] != 1){
+            return $result;
+        }
+
+        $client = $result['client'];
+
+        try{
+
+            //$query = new MikroTikQuery( $command );
+            //Log::error($command);
+            $command_lines = $result['command_lines'];
+
+            foreach($command_lines as $command){
+                $query = static::convertCliToApiQuery($command);
+                $response =  $client->query($query)->read();
+                //Log::error($response); 
+            }
+
+            if($request){
+                PayModelHelper::update($deviceAccount, $request, [])->save();
+            }else{
+                $deviceAccount->save();
+            }
+
+
+            return ["status"=>1, "message"=>"Set Inactive Completed."];
+
+        }catch(\Exception $ex){
+            
+            //Log::error($ex->getMessage());
+            return ["status"=>0, "message"=>$ex->getMessage()];
+        }  
     }
 
 }
