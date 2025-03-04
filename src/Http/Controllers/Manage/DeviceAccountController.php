@@ -42,6 +42,27 @@ class DeviceAccountController extends _CommonController
 
     }
 
+    public function update_auto_trigger(Request $request){
+        $this->validate($request, [
+            "device_account_id"=>"required",
+            "is_auto_trigger"=>"required"
+        ]);
+
+        $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where('id', $request->device_account_id);
+        
+        if(!$deviceAccount){
+            return ["status"=>0, "message"=>"Account not found"];
+        }
+
+
+        PayModelHelper::update($deviceAccount, $request, [
+            "is_auto_trigger"=>$request->is_auto_trigger
+        ]);
+
+        return ["status"=>1, "message"=>"Updated"];
+
+    }
+
     public function register_account(Request $request){ 
 
         //TODO:: device_template_trigger_id

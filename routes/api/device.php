@@ -51,6 +51,9 @@ Route::prefix('/devices')->middleware('can:super-admin')->name('.device')->group
         Route::post('register-account-preview', [DeviceAccountController::class, 'register_account_preview'])->name('.register-preview');
 
 
+        //UPDATE AUTO TRIGGER
+        Route::put('update-auto-trigger', [DeviceAccountController::class, 'update_auto_trigger'])->name('.update-auto-trigger');
+
         //UPDATE
         Route::put('update-account', [DeviceAccountController::class, 'update_account'])->name('.update-account');
         Route::post('update-account-preview', [DeviceAccountController::class, 'update_account_preview'])->name('.update-account-preview');
