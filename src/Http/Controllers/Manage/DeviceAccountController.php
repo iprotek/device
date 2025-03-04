@@ -204,7 +204,7 @@ class DeviceAccountController extends _CommonController
         }
 
 
-        return ["status"=>1, "message"=>"Successfully Updated"]; 
+        return ["status"=>1, "message"=>"Successfully Set Active."]; 
 
     }    
     public function set_active_account_preview(Request $request){ 
@@ -240,7 +240,7 @@ class DeviceAccountController extends _CommonController
         }
 
 
-        return ["status"=>1, "message"=>"Successfully Updated"]; 
+        return ["status"=>1, "message"=>"Successfully Set Inactive."]; 
 
     }
     public function set_inactive_account_preview(Request $request){
@@ -271,6 +271,13 @@ class DeviceAccountController extends _CommonController
         ]);
 
 
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        if(!$device_account){
+            return ["status"=>0, "message"=>"Permission Denied"];
+        }
+
+
+        return ["status"=>1, "message"=>"Successfully Removed"]; 
 
     }
     public function remove_account_preview(Request $request){
