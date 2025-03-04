@@ -177,7 +177,7 @@ class DeviceAccountController extends _CommonController
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
-        $template = $trigger->register_command_template;
+        $template = $trigger->update_command_template;
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
         if(is_array($translate) && $translate["status"] == 0){
@@ -244,7 +244,7 @@ class DeviceAccountController extends _CommonController
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
-        $template = $trigger->register_command_template;
+        $template = $trigger->active_command_template;
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
         if(is_array($translate) && $translate["status"] == 0){
@@ -314,7 +314,7 @@ class DeviceAccountController extends _CommonController
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
-        $template = $trigger->register_command_template;
+        $template = $trigger->inactive_command_template;
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
         if(is_array($translate) && $translate["status"] == 0){
@@ -384,7 +384,7 @@ class DeviceAccountController extends _CommonController
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
-        $template = $trigger->register_command_template;
+        $template = $trigger->remove_command_template;
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
         if(is_array($translate) && $translate["status"] == 0){
