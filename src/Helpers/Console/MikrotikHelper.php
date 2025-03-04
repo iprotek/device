@@ -489,7 +489,7 @@ class MikrotikHelper
                 }
                 $response =  $client->query($query['query'])->read();
                 
-                if($query['base_command'] == '/ppp/active/print'){
+                if($base_command == '/ppp/active/print'){
                     $activeUsers = $response;
                 }
                 
