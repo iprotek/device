@@ -323,15 +323,16 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
-
-            //$query = new MikroTikQuery( $command );
-            //Log::error($command);
+ 
             $command_lines = $result['command_lines'];
 
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
                 $response =  $client->query($query)->read();
-                //Log::error($response); 
+                //Error popup
+                if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                    return["status"=>0,"message"=>$response['after']['message']];
+                }
             }
 
             if($request){
@@ -370,15 +371,18 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
-
-            //$query = new MikroTikQuery( $command );
-            //Log::error($command);
+ 
             $command_lines = $result['command_lines'];
 
             foreach($command_lines as $command){
+
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query)->read();
-                Log::error($response); 
+                $response =  $client->query($query)->read(); 
+                
+                //Error pop up
+                if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                    return["status"=>0,"message"=>$response['after']['message']];
+                }
             }
 
             if($request){
@@ -417,15 +421,18 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
-
-            //$query = new MikroTikQuery( $command );
-            //Log::error($command);
+ 
             $command_lines = $result['command_lines'];
 
             foreach($command_lines as $command){
+ 
                 $query = static::convertCliToApiQuery($command);
                 $response =  $client->query($query)->read();
-                Log::error($response); 
+ 
+                //Error Popup
+                if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                    return["status"=>0,"message"=>$response['after']['message']];
+                } 
             }
 
             if($request){
@@ -464,14 +471,18 @@ class MikrotikHelper
 
         try{
 
-            //$query = new MikroTikQuery( $command );
-            //Log::error($command);
+            
             $command_lines = $result['command_lines'];
 
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
                 $response =  $client->query($query)->read();
-                //Log::error($response); 
+                
+                //Error popup
+                
+                if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                    return["status"=>0,"message"=>$response['after']['message']];
+                }
             }
 
             if($request){
