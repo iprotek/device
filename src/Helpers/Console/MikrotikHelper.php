@@ -490,6 +490,8 @@ class MikrotikHelper
                 $response =  $client->query($query['query'])->read();
                 
                 if($base_command == '/ppp/active/print'){
+                    Log::error($base_command);
+                    Log::error($response);
                     $activeUsers = $response;
                 }
                 
@@ -512,7 +514,7 @@ class MikrotikHelper
         }catch(\Exception $ex){
             
             //Log::error($ex->getMessage());
-            return ["status"=>0, "message"=>$ex->getMessage()];
+            return ["status"=>0, "message"=>"Error: ".$ex->getMessage()];
         }  
     }
 
