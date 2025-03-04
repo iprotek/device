@@ -483,6 +483,7 @@ class MikrotikHelper
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
                 $base_command = $query['base_command'];
+                Log::error($base_command);
 
                 if($base_command == '/ppp/active/remove' && count($activeUsers)<= 0){
                     continue;
