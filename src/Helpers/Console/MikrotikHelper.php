@@ -378,7 +378,7 @@ class MikrotikHelper
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
                 $response =  $client->query($query)->read();
-                //Log::error($response); 
+                Log::error($response); 
             }
 
             if($request){
@@ -425,7 +425,7 @@ class MikrotikHelper
             foreach($command_lines as $command){
                 $query = static::convertCliToApiQuery($command);
                 $response =  $client->query($query)->read();
-                //Log::error($response); 
+                Log::error($response); 
             }
 
             if($request){
