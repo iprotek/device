@@ -428,10 +428,21 @@ class MikrotikHelper
  
             $command_lines = $result['command_lines'];
 
+            $activeUsers = [];
+
             foreach($command_lines as $command){
  
                 $query = static::convertCliToApiQuery($command);
+                $base_command = $query['base_command']; 
+
+                if($base_command == '/ppp/active/remove' && count($activeUsers)<= 0){
+                    continue;
+                }
                 $response =  $client->query($query['query'])->read();
+                
+                if($base_command == '/ppp/active/print'){ 
+                    $activeUsers = $response;
+                }
  
                 //Error Popup
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -481,20 +492,9 @@ class MikrotikHelper
             $activeUsers = [];
 
             foreach($command_lines as $command){
-                $query = static::convertCliToApiQuery($command);
-                $base_command = $query['base_command'];
-                Log::error($base_command);
 
-                if($base_command == '/ppp/active/remove' && count($activeUsers)<= 0){
-                    continue;
-                }
+                $query = static::convertCliToApiQuery($command);  
                 $response =  $client->query($query['query'])->read();
-                
-                if($base_command == '/ppp/active/print'){
-                    Log::error($base_command);
-                    Log::error($response);
-                    $activeUsers = $response;
-                }
                 
                 //Error popup
                 
