@@ -162,7 +162,7 @@ class MikrotikHelper
         }
 
         //SPLIT COMMAND INTO 2
-        $lines = array_filter( explode("\n", $command ) );
+        $lines = array_filter( explode("\n", $commandStr ) );
         if(count($lines)<= 0){
             return ["status"=>0, "message"=>"Empty Command"];
         }
