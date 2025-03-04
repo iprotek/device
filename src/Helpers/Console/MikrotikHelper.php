@@ -264,7 +264,7 @@ class MikrotikHelper
                 "target_name"=>$target_name,
                 "target_id"=>$target_id,
                 "account_id"=>$checkRegResult["id"],
-                "is_active"=>true,
+                "is_active"=>false,
                 "active_info"=>"Linked account"
             ]);
 
