@@ -207,6 +207,10 @@ class MikrotikHelper
             return ["status"=>0, "message"=>"No Device found on trigger."];
         }
 
+        if($deviceAccess->enable_register){
+            return ["status"=>0, "message"=>"Register Command not enabled."];
+        }
+
         //SPLIT COMMAND INTO 2
         $lines = array_filter( explode("\n", $command ) );
 
@@ -303,6 +307,13 @@ class MikrotikHelper
 
     public static function update(  DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
         
+        $trigger =  DeviceTemplateTrigger::find($deviceAccount->device_template_trigger_id);
+        if( !$trigger->enable_update ){
+            return ["status"=>0, "message"=>"Update Command not enabled."];
+        }
+
+
+
         $result = static::commandResultValidation($commandStr, $deviceAccount);
 
         if($result['status'] != 1){
@@ -343,6 +354,13 @@ class MikrotikHelper
 
     public static function active( DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
 
+        
+        $trigger =  DeviceTemplateTrigger::find($deviceAccount->device_template_trigger_id);
+        if( !$trigger->enable_active ){
+            return ["status"=>0, "message"=>"Set Active command not enabled."];
+        }
+
+
         $result = static::commandResultValidation($commandStr, $deviceAccount);
 
         if($result['status'] != 1){
@@ -381,6 +399,12 @@ class MikrotikHelper
 
     public static function inactive(DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
         
+        
+        $trigger =  DeviceTemplateTrigger::find($deviceAccount->device_template_trigger_id);
+        if( !$trigger->enable_inactive ){
+            return ["status"=>0, "message"=>"Set Inactive Command not enabled."];
+        }
+
         $result = static::commandResultValidation($commandStr, $deviceAccount);
 
         if($result['status'] != 1){
@@ -419,6 +443,11 @@ class MikrotikHelper
 
     public static function remove(DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
       
+        $trigger =  DeviceTemplateTrigger::find($deviceAccount->device_template_trigger_id);
+        if( !$trigger->enable_remove ){
+            return ["status"=>0, "message"=>"Remove command is not enabled."];
+        }
+
         $result = static::commandResultValidation($commandStr, $deviceAccount);
 
         if($result['status'] != 1){
