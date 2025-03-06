@@ -451,7 +451,7 @@ class MikrotikHelper
             }
 
 
-            //REMOVAL OF SELECTED ACTIVER USERS
+            //REMOVAL OF SELECTED ACTIVE USERS
             foreach($activeUsers as $activeUser){
                 $query = new MikroTikQuery('/ppp/active/remove');
                 $query->equal('.id', $activeUser['.id']);
