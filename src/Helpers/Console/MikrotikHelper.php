@@ -460,8 +460,6 @@ class MikrotikHelper
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
                     return["status"=>0,"message"=>$response['after']['message']];
                 }
-                //Ensure that removal of active user is only one.
-                break;
             }
 
             if($request){
