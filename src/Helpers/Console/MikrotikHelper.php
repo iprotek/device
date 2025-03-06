@@ -377,11 +377,28 @@ class MikrotikHelper
         try{
  
             $command_lines = $result['command_lines'];
+            $activeUsers = [];
 
             foreach($command_lines as $command){
 
                 $query = static::convertCliToApiQuery($command);
-                $response =  $client->query($query['query'])->read(); 
+                
+                $base_command = $query['base_command']; 
+
+                $response =  $client->query($query['query'])->read();
+
+                if($base_command == '/ppp/active/print'){ 
+                    $activeUsers = $response;
+                    foreach($activeUsers as $activeUser){
+                        $query = new MikroTikQuery('/ppp/active/remove');
+                        $query->equal('.id', $activeUser['.id']);
+                        $response =  $client->query($query)->read();
+                        //Error popup
+                        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                            return["status"=>0,"message"=>$response['after']['message']];
+                        }
+                    }
+                }
                 
                 //Error pop up
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
