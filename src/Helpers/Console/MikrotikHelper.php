@@ -450,6 +450,18 @@ class MikrotikHelper
                 } 
             }
 
+
+            //REMOVAL OF SELECTED ACTIVER USERS
+            foreach($activeUsers as $activeUser){
+                $query = new MikroTikQuery('/ppp/active/remove');
+                $query->equal('.id', $activeUser['.id']);
+                $response =  $client->query($query)->read();
+                //Error popup
+                if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                    return["status"=>0,"message"=>$response['after']['message']];
+                }
+            }
+
             if($request){
                 PayModelHelper::update($deviceAccount, $request, [
                     "is_active"=>false
