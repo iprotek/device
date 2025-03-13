@@ -34,7 +34,7 @@ Route::prefix('/devices')->middleware('can:super-admin')->name('.device')->group
     //DELETE
     Route::post('delete', [DeviceAccessController::class, 'remove'])->name('.remove');
 
-    Route::get('logs', [DeviceAccessTriggerLogController::class, 'list'])->name('.list');
+    Route::get('logs', [DeviceAccessTriggerLogController::class, 'list'])->name('.logs');
 
     Route::get('dynamic-selection', [DeviceAccessController::class, 'dynamic_selection'])->name('.dynamic-selection');
 
