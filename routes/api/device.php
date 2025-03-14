@@ -13,10 +13,6 @@ use Illuminate\Http\Request;
  
 Route::prefix('/devices')->middleware('can:super-admin')->name('.device')->group(function(){
     
-    //Route::post('/save', [ CmsController::class ,'save_cms'])->name('.save'); 
-    //Route::post('/get-content', [ CmsController::class ,'get_cms'])->name('.get'); 
-    /*
-    */
     //LIST & GET
     Route::get('/list', [DeviceAccessController::class, 'list'])->name('.list');
 

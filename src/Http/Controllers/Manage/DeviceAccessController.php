@@ -122,7 +122,7 @@ class DeviceAccessController extends _CommonController
         ])->first();
 
         if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
-            return [ "status"=>0, "message"=>"Device Type is not supported" ];
+            return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 
         if($exists){
@@ -231,7 +231,7 @@ class DeviceAccessController extends _CommonController
         ])->validate();
         
         if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
-            return [ "status"=>0, "message"=>"Device Type is not supported" ];
+            return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 
         //CHECK IF ALREADY EXISTS
@@ -291,7 +291,7 @@ class DeviceAccessController extends _CommonController
         }
 
 
-        return ["status"=>1, "message"=>"Successfully updated", "data"=>$can_manage];
+        return ["status"=>1, "message"=>"Successfully updated", "data"=>$can_manage, "data_id"=>$can_manage->id];
 
     }
 
