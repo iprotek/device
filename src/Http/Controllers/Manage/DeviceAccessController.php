@@ -23,6 +23,15 @@ class DeviceAccessController extends _CommonController
             $search_text = '%'.str_replace(' ', '%', $request->search_text).'%';
             $deviceList->whereRaw(' CONCAT(type,name,user,port) LIKE ?', [$search_text]);
         }
+        if($request->has('is_active')){
+            $deviceList->where('is_active', $request->is_active);
+        }
+
+        if($request->has('type')){
+            $deviceList->where('type', $request->type);
+        }
+
+
         return $deviceList->paginate(10);
     }
 
@@ -112,7 +121,7 @@ class DeviceAccessController extends _CommonController
             "name"=>$request->name
         ])->first();
 
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
             return [ "status"=>0, "message"=>"Device Type is not supported" ];
         }
 
@@ -171,7 +180,7 @@ class DeviceAccessController extends _CommonController
         }
 
 
-        return ["status"=>1, "message"=>"Successfully Added.", "data"=>$device_access];
+        return ["status"=>1, "message"=>"Successfully Added.", "data"=>$device_access, "data_id"=>$device_access->id];
     }
 
     public function get(Request $request){
@@ -221,7 +230,7 @@ class DeviceAccessController extends _CommonController
             "is_ssl"=>"required"
         ])->validate();
         
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
             return [ "status"=>0, "message"=>"Device Type is not supported" ];
         }
 
