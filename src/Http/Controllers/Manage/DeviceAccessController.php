@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use iProtek\Core\Http\Controllers\_Common\_CommonController;
 use iProtek\Core\Helpers\PayHttp;
 use iProtek\Core\Helpers\PayModelHelper;
+use Illuminate\Support\Facades\Schema;
 
 use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
@@ -31,6 +32,11 @@ class DeviceAccessController extends _CommonController
             $deviceList->where('type', $request->type);
         }
 
+        if(!$request->has('show_pass')){
+            $columns = Schema::getColumnListing((new DeviceAccess)->getTable());
+            $columns = array_diff($columns, ['password']);
+            $deviceList->select($columns);
+        }
 
         return $deviceList->paginate(10);
     }
@@ -193,9 +199,16 @@ class DeviceAccessController extends _CommonController
         //VALIDATE NAME EXCEPT THE ID
         $device_access_id = $requiredId['device_access_id'];
 
-        $can_manage = PayModelHelper::get(DeviceAccess::class, $request,[])->find($device_access_id);
-        
-        return $can_manage;
+        $can_manage = PayModelHelper::get(DeviceAccess::class, $request,[]);
+                
+        if(!$request->has('show_pass')){
+            $columns = Schema::getColumnListing((new DeviceAccess)->getTable());
+            $columns = array_diff($columns, ['password']);
+            $can_manage->select($columns);
+        }
+
+
+        return $can_manage->find($device_access_id);
         
     }
 

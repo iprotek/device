@@ -32,10 +32,11 @@ class DeviceAccess extends Model
         "is_ssl"
     ];
 
+    /*
     protected $hidden = [
         "password"
-
     ];
+    */
 
     protected $casts = [
         "branch_ids"=> "json",
