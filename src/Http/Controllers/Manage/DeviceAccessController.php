@@ -198,7 +198,7 @@ class DeviceAccessController extends _CommonController
 
         //VALIDATE NAME EXCEPT THE ID
         $device_access_id = $requiredId['device_access_id'];
-
+        
         $can_manage = PayModelHelper::get(DeviceAccess::class, $request,[]);
                 
         if(!$request->has('show_pass')){
