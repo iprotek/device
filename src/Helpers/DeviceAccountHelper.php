@@ -141,7 +141,7 @@ class DeviceAccountHelper {
     }
 
     //UPDATES
-    public static function update($target_name, $target_id){
+    public static function update($target_name, $target_id, $force=false){
         
         $current_device_trigger = null;
         try{
@@ -173,6 +173,9 @@ class DeviceAccountHelper {
                     static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
                     continue;
                 }
+                //PREVENT FROM TRIGGERS
+                else if(!$force && !$deviceAccount->is_auto_trigger)
+                    continue;
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
@@ -218,7 +221,7 @@ class DeviceAccountHelper {
     }   
 
     //ACTIVATE
-    public static function active($target_name, $target_id){
+    public static function active($target_name, $target_id, $force=false){
 
         $current_device_trigger = null;
         try{
@@ -250,6 +253,10 @@ class DeviceAccountHelper {
                     static::log($target_name, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
                     continue;
                 }
+                //PREVENT FROM TRIGGERS
+                else if(!$force && !$deviceAccount->is_auto_trigger)
+                    continue;
+                
                 
 
                 $device_access = $trigger->device_access;
@@ -298,7 +305,7 @@ class DeviceAccountHelper {
     }
 
     //INACTIVE
-    public static function inactive($target_name, $target_id){
+    public static function inactive($target_name, $target_id, $force=false){
         
         $current_device_trigger = null;
         try{
@@ -332,6 +339,9 @@ class DeviceAccountHelper {
                     static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for deactivation.", "Account not exist for activating.", 2, $trigger->id);
                     continue;
                 }
+                //PREVENT FROM TRIGGERS
+                else if(!$force && !$deviceAccount->is_auto_trigger)
+                    continue;
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
@@ -379,7 +389,7 @@ class DeviceAccountHelper {
     }
 
     //REMOVE
-    public static function remove($target_name, $target_id){
+    public static function remove($target_name, $target_id, $force=false){
 
 
         $current_device_trigger = null;
@@ -412,6 +422,9 @@ class DeviceAccountHelper {
                     static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for removal.", "Account not exist for activating.", 2, $trigger->id);
                     continue;
                 }
+                //PREVENT FROM TRIGGERS
+                else if(!$force && !$deviceAccount->is_auto_trigger)
+                    continue;
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
