@@ -21,7 +21,7 @@ class UpdateAccessTriggerLogsStatus extends Migration
             $table->bigInteger('pay_updated_by')->nullable();
             $table->bigInteger('pay_deleted_by')->nullable();
 
-            $table->integer('status_id')->default(0); //0 -pending, 1-success, 2-
+            $table->integer('status_id')->default(0); //0 -pending, 1-success, 2-failed
         });
     }
 

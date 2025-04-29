@@ -30,4 +30,8 @@ class DeviceAccount extends Model
         "created_at"=>"datetime:F j,Y h:i a",
         "updated_at"=>"datetime:F j,Y h:i a"
     ];
+
+    public function device_template_trigger(){
+        return $this->belongsTo(DeviceTemplateTrigger::class, 'device_template_trigger_id');
+    }
 }
