@@ -269,8 +269,8 @@ class DeviceAccountController extends _CommonController
             return \iProtek\Device\Helpers\Console\MikrotikHelper::active(
                 $device_account, 
                 $translate,
-                $requestedData['target_name'],//$request->target_name,
-                $requestData['target_id'],//$request->target_id,
+                $requestedData['target_name'],
+                $requestData['target_id'],
                 $request
             );
         }

@@ -202,7 +202,7 @@ class MikrotikHelper
         ];
     }
 
-    public static function register( Request $request, DeviceTemplateTrigger $deviceTrigger, $command, $target_name, $target_id){
+    public static function register( Request $request = null, DeviceTemplateTrigger $deviceTrigger, $command, $target_name, $target_id){
 
         //VALIDATIONS
         $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
@@ -267,14 +267,26 @@ class MikrotikHelper
             }
 
             //SAVING LINKED ACCOUNT
-            PayModelHelper::create( DeviceAccount::class, $request, [
-                "device_template_trigger_id"=>$deviceTrigger->id,
-                "target_name"=>$target_name,
-                "target_id"=>$target_id,
-                "account_id"=>$checkRegResult["id"],
-                "is_active"=>false,
-                "active_info"=>"Linked account"
-            ]);
+            if($request){
+                PayModelHelper::create( DeviceAccount::class, $request, [
+                    "device_template_trigger_id"=>$deviceTrigger->id,
+                    "target_name"=>$target_name,
+                    "target_id"=>$target_id,
+                    "account_id"=>$checkRegResult["id"],
+                    "is_active"=>false,
+                    "active_info"=>"Linked account"
+                ]);
+            }else{
+                DeviceAccount::create([
+                    "group_id"=>$deviceTrigger->group_id,
+                    "device_template_trigger_id"=>$deviceTrigger->id,
+                    "target_name"=>$target_name,
+                    "target_id"=>$target_id,
+                    "account_id"=>$checkRegResult["id"],
+                    "is_active"=>false,
+                    "active_info"=>"Linked account"
+                ]);
+            }
 
             return ["status"=>1, "message"=>"Existed account linked."];
         } 
@@ -287,17 +299,25 @@ class MikrotikHelper
             $checkRegResult = static::checkAccount($client, $checkRegCommand);
             if($checkRegResult["status"] == 1 && $checkRegResult["id"] != 0){
 
-                PayModelHelper::create( DeviceAccount::class, $request, [
-                    "device_template_trigger_id"=>$deviceTrigger->id,
-                    "target_name"=>$target_name,
-                    "target_id"=>$target_id,
-                    "account_id"=>$checkRegResult["id"],
-                    "is_active"=>false,
-                    "active_info"=>"Regisration Successfull"
-                ]);
-
-
-
+                if($request){
+                    PayModelHelper::create( DeviceAccount::class, $request, [
+                        "device_template_trigger_id"=>$deviceTrigger->id,
+                        "target_name"=>$target_name,
+                        "target_id"=>$target_id,
+                        "account_id"=>$checkRegResult["id"],
+                        "is_active"=>false,
+                        "active_info"=>"Regisration Successfull"
+                    ]);
+                }else{
+                    DeviceAccount::create([
+                        "group_id"=>$deviceTrigger->group_id,
+                        "target_name"=>$target_name,
+                        "target_id"=>$target_id,
+                        "account_id"=>$checkRegResult["id"],
+                        "is_active"=>false,
+                        "active_info"=>"Regisration Successfull"
+                    ]);
+                }
                 return ["status"=>1, "message"=>"Registered Successfully"];
             } 
 
