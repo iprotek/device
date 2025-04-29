@@ -66,7 +66,7 @@ class DeviceAccountController extends _CommonController
     public function register_account(Request $request){ 
 
         //TODO:: device_template_trigger_id
-        $requestData = $this->validate($request, [
+        $requestedData = $this->validate($request, [
             "target_id"=>"required",
             "target_name"=>"required",
             "device_template_trigger_id"=>"required"
@@ -74,14 +74,14 @@ class DeviceAccountController extends _CommonController
 
 
         //CHECK IF ACCOUNT EXISTS
-        $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where($requestData)->first();
+        $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where($requestedData)->first();
 
         if($deviceAccount){
             return ["status"=>0,"message"=>"Account already exists"];
         }
 
         //GET TEMPLATE TRIGGER INFO
-        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($requestData['device_template_trigger_id']);
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($requestedData['device_template_trigger_id']);
 
         if(!$trigger || $trigger->is_active !== true ){
             return ["status"=>0,"message"=>"Device Trigger not available."];
@@ -100,7 +100,7 @@ class DeviceAccountController extends _CommonController
         
         $template = $trigger->register_command_template;
         //CONVERT TEMPLATE TRANSLATION
-        $translate = DeviceHelper::translate_template($template, $requestData['target_name'], $requestData['target_id']);
+        $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
         if(is_array($translate) && $translate["status"] == 0){
             return $translate;
         }
@@ -115,8 +115,8 @@ class DeviceAccountController extends _CommonController
                 $request,
                 $trigger,
                 $translate,
-                $requestData['target_name'],
-                $requestData['target_id']
+                $requestedData['target_name'],
+                $requestedData['target_id']
             );
         }
         else{
@@ -167,29 +167,29 @@ class DeviceAccountController extends _CommonController
 
     public function update_account(Request $request){
 
-        $this->validate($request, [
+        $requestedData = $this->validate($request, [
             "target_id"=>"required",
             "target_name"=>"required",
             "device_template_trigger_id"=>"required",
             "device_account_id"=>"required"
-        ]);
+        ])->validated();
 
         
         //GET TEMPLATE TRIGGER INFO
-        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($requestedData['device_template_trigger_id']);
         $device_access = $trigger->device_access;
         if(!$trigger || $trigger->is_active !== true ){
             return ["status"=>0,"message"=>"Device Trigger not available."];
         }
 
-        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($requestedData['device_account_id']);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
         $template = $trigger->update_command_template;
         //CONVERT TEMPLATE TRANSLATION
-        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        $translate = DeviceHelper::translate_template($template,$requestedData['target_name'],$requestedData['target_id'] );
         if(is_array($translate) && $translate["status"] == 0){
             return $translate;
         }
@@ -202,8 +202,8 @@ class DeviceAccountController extends _CommonController
             return \iProtek\Device\Helpers\Console\MikrotikHelper::update(
                 $device_account, 
                 $translate,
-                $request->target_name,
-                $request->target_id,
+                $requestedData['target_name'],
+                $requestedData['target_id'], 
                 $request
             );
         }
@@ -270,7 +270,7 @@ class DeviceAccountController extends _CommonController
                 $device_account, 
                 $translate,
                 $requestedData['target_name'],
-                $requestData['target_id'],
+                $requestedData['target_id'],
                 $request
             );
         }
@@ -303,30 +303,29 @@ class DeviceAccountController extends _CommonController
 
     public function set_inactive_account(Request $request){
         
-        $this->validate($request, [
+        $requestedData = $this->validate($request, [
             "target_id"=>"required",
             "target_name"=>"required",
             "device_template_trigger_id"=>"required",
             "device_account_id"=>"required"
-        ]);
-
+        ])->validated();
         
         //GET TEMPLATE TRIGGER INFO
-        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($request->device_template_trigger_id);
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find(  $requestedData['device_template_trigger_id'] );
         $device_access = $trigger->device_access;
 
         if(!$trigger || $trigger->is_active !== true ){
             return ["status"=>0,"message"=>"Device Trigger not available."];
         }
 
-        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($request->device_account_id);
+        $device_account = PayModelHelper::get(DeviceAccount::class, $request)->find($requestedData['device_account_id']);
         if(!$device_account){
             return ["status"=>0, "message"=>"Permission Denied"];
         }
 
         $template = $trigger->inactive_command_template;
         //CONVERT TEMPLATE TRANSLATION
-        $translate = DeviceHelper::translate_template($template, $request->target_name, $request->target_id);
+        $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
         if(is_array($translate) && $translate["status"] == 0){
             return $translate;
         }
@@ -339,8 +338,8 @@ class DeviceAccountController extends _CommonController
             return \iProtek\Device\Helpers\Console\MikrotikHelper::inactive(
                 $device_account, 
                 $translate,
-                $request->target_name,
-                $request->target_id,
+                $requestedData['target_name'],
+                $requestedData['target_id'],
                 $request
             );
         }
