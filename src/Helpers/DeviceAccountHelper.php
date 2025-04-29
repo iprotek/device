@@ -151,7 +151,7 @@ class DeviceAccountHelper {
 
 
             if( count($device_triggers) <= 0){
-                static::log(0, 0, "--", "Unable to active empty trigger specified.", "Failed to register empty trigger specified.", 2, 0);
+                static::log($target_name, $target_id, 0, "--", "Unable to active empty trigger specified.", "Failed to register empty trigger specified.", 2, 0);
                 return ["status"=>0, "message"=>"No trigger found."];
             }
 
