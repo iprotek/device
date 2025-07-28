@@ -250,7 +250,7 @@ class DeviceAccountHelper {
 
                 if(!$deviceAccount){
                     //RECORD EXISTENCE
-                    static::log($target_name, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
+                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
                     continue;
                 }
                 //PREVENT FROM TRIGGERS
