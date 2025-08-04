@@ -43,6 +43,7 @@ class DeviceAccess extends Model
         "is_active" => "boolean",
         "is_error"  => "boolean",
         "is_app_execute" => "boolean",
-        "is_ssl" => "boolean"
+        "is_ssl" => "boolean",
+        "is_trigger_registration"=>"boolean"
     ];
 }

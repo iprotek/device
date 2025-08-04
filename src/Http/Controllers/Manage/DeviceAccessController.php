@@ -120,7 +120,8 @@ class DeviceAccessController extends _CommonController
             "password"=>"nullable",
             "is_active"=>"required",
             "is_app_execute"=>"required",
-            "is_ssl"=>"required"
+            "is_ssl"=>"required",
+            "is_trigger_registration"=>"required"
         ])->validate();
 
         $exists = PayModelHelper::get(DeviceAccess::class, $request, [
@@ -240,7 +241,8 @@ class DeviceAccessController extends _CommonController
             "password"=>"nullable",
             "is_active"=>"required",
             "is_app_execute"=>"required",
-            "is_ssl"=>"required"
+            "is_ssl"=>"required",
+            "is_trigger_registration"=>"required"
         ])->validate();
         
         if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
