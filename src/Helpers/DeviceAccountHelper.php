@@ -10,6 +10,9 @@ use iProtek\Device\Models\DeviceTemplateTrigger;
 use iProtek\Device\Models\DeviceAccessTriggerLog;
 use iProtek\Device\Helpers\DeviceHelper;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
+use Illuminate\Http\Request;
+use iProtek\Device\Models\DeviceAccess;
+use iProtek\Core\Helpers\PayModelHelper;
 
 class DeviceAccountHelper {
 
@@ -29,8 +32,142 @@ class DeviceAccountHelper {
         ]);
     }
 
+
+    //This should be placed when adding new entry
+    public static function autoRegister(Request $request, $target_id, $target_name, $branch_id){
+
+        //PREVENT ENTRIES FROM EMPTY REQUEST
+        if($request === null)
+            return;
+
+
+        //checking for active device with enabled register
+        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>$target_id, "target_name"=>$target_name, "enable_register"=>true]);
+
+        //Check if has trigger in specific branch
+        $triggers->whereHas('device_access', function($q)use($branch_id){
+            $q->where('is_trigger_registration', true);
+            $q->whereRaw(" json_contains(branch_ids, '?')", $branch_id);
+            $q->where('is_active', true);
+        });
+
+
+        //Execute triggers by Loop
+        $triggerList = $triggers->get();
+
+
+        foreach($triggerList as $trigger){
+            static::register($request, $target_name, $target_id, $trigger->id);
+        }
+
+    }
+
     //REGISTER
-    public static function register($target_name, $target_id){
+    public static function register( Request $request, $target_name, $target_id, $device_template_trigger_id){
+
+        //PREVENT ENTRIES FROM EMPTY REQUEST
+        if($request === null)
+            return;
+        
+        $requestedData = [
+            "target_name"=>$target_name,
+            "target_id"=>$target_id,
+            "device_template_trigger_id"=>$device_template_trigger_id
+        ];
+
+        //CHECK IF ACCOUNT EXISTS
+        $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where($requestedData)->first();
+
+        if($deviceAccount){
+
+            static::log( $target_name, $target_id, 0, "--", "Failed to register already exists.", "Failed to register already exists.", 2, $device_template_trigger_id);
+            return ["status"=>0,"message"=>"Account already exists"];
+        
+        }
+
+        //GET TEMPLATE TRIGGER INFO
+        $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($device_template_trigger_id);
+
+        if(!$trigger || $trigger->is_active !== true ){
+
+            static::log( $target_name, $target_id, 0, "--", "Device Trigger not available.", "Device Trigger not available.", 2, $device_template_trigger_id);
+            return ["status"=>0,"message"=>"Device Trigger not available."];
+
+        }
+
+        //GET DEVICE
+        $device_access = $trigger->device_access;
+        if(!$device_access || $device_access->is_active !== true){
+
+            static::log( $target_name, $target_id, 0, "--", "Device Access is not available.", "Device Access is not available.", 2, $device_template_trigger_id);
+            return ["status"=>0,"message"=>"Device Access is not available."];
+
+        }
+
+        //CHECK IF ALLOW REGISTER
+        if($trigger->enable_register !== true){
+            
+            static::log( $target_name, $target_id, 0, "--", "Register is disabled.", "Register is disabled.", 2, $device_template_trigger_id);
+            return ["status"=>0, "message"=>"Register is disabled."];
+        
+        }
+        
+        $template = $trigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
+        if(is_array($translate) && $translate["status"] == 0){
+
+            //return ["status"=>0, "message"=>"Invalid".$requestedData['target_name'] . "-" . $requestedData['target_id']];
+            static::log( $target_name, $target_id, 0, "--", "Translate error: ".$translate["message"], "Translate error: ".$translate["message"], 2, $device_template_trigger_id);
+            return $translate;
+
+        }
+        if( !is_string( $translate)){
+            static::log( $target_name, $target_id, 0, "--", "Translate error: Invalid Command", "Translate error: Invalid Command", 2, $device_template_trigger_id);
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
+        //return ["status"=>0, "message"=>$translate];
+
+        //IF MIKROTIK
+        if($device_access->type == 'mikrotik'){
+            return \iProtek\Device\Helpers\Console\MikrotikHelper::register(
+                $request,
+                $trigger,
+                $translate,
+                $requestedData['target_name'],
+                $requestedData['target_id']
+            );
+        }
+        else{
+
+        }
+
+
+        //ELSE IF SSH
+
+
+        //ELSE IF WINDOWS
+
+
+
+        //ADD TO LOG
+
+        //CHECK DEVICE CONNECTION
+
+
+        //ADD TO LOG
+        //EXECUTE THE COMMAND
+
+
+      
+        //RENDER THE ID
+
+        //ADD DEVICE ACCOUNT
+
+        return ["status"=>0, "message"=>"Device Registration Not available in this type." ];
+
+
+
 
         $current_device_trigger = null;
         try{

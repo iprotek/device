@@ -71,7 +71,13 @@ class DeviceAccountController extends _CommonController
             "target_name"=>"required",
             "device_template_trigger_id"=>"required"
         ])->validated();
+        
+        $target_name = $requestedData['target_name'];
+        $target_id = 1;//$requestedData['target_id'];
+        $device_template_trigger_id = $requestedData['device_template_trigger_id'];
 
+
+        return \iProtek\Device\Helpers\DeviceAccountHelper::register($request, $target_name, $target_id, $device_template_trigger_id);
 
         //CHECK IF ACCOUNT EXISTS
         $deviceAccount = PayModelHelper::get(DeviceAccount::class, $request)->where($requestedData)->first();
