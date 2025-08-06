@@ -29,7 +29,8 @@ class DeviceAccess extends Model
         "is_error",
         "is_app_execute",
         "error_info",
-        "is_ssl"
+        "is_ssl",
+        "is_trigger_registration"
     ];
 
     /*
