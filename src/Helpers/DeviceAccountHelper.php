@@ -50,7 +50,7 @@ class DeviceAccountHelper {
 
         $triggers->whereHas('device_access', function($q)use($branch_id){
             $q->where('is_trigger_registration', 1);
-            $q->whereRaw(" JSON_CONTAINS(branch_ids, '?' ) ", [$branch_id]);
+            $q->whereRaw(" JSON_CONTAINS(branch_ids, ? ) ", ["'".$branch_id."'"]);
             $q->where('is_active', 1);
         });
 
