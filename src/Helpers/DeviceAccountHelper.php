@@ -54,12 +54,8 @@ class DeviceAccountHelper {
             $q->where('is_active', 1);
         });
 
-
         //Execute triggers by Loop
         $triggerList = $triggers->get();
-
-        return ["status"=>0, "message"=>"Auto register completed." ];
-
 
         foreach($triggerList as $trigger){
             static::register($request, $target_name, $target_id, $trigger->id);
