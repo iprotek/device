@@ -50,7 +50,7 @@ class DeviceAccountHelper {
 
         $triggers->whereHas('device_access', function($q)use($branch_id){
             $q->where('is_trigger_registration', 1);
-            $q->whereRaw(' JSON_CONTAINS(branch_ids, ? ) = 1 ', $branch_id."");
+            $q->whereRaw(' JSON_CONTAINS(branch_ids, ? ) ', "'".$branch_id."'");
             $q->where('is_active', 1);
         });
 
@@ -58,6 +58,7 @@ class DeviceAccountHelper {
         $triggerList = $triggers->get();
 
         Log::error($triggerList);
+        Log::error($branch_id);
 
         foreach($triggerList as $trigger){
             static::register($request, $target_name, $target_id, $trigger->id);
