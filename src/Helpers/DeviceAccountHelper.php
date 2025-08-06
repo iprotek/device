@@ -60,6 +60,8 @@ class DeviceAccountHelper {
             static::register($request, $target_name, $target_id, $trigger->id);
         }
 
+        return ["status"=>0, "message"=>"Auto register completed." ];
+
     }
 
     //REGISTER
