@@ -50,10 +50,12 @@ class DeviceAccountHelper {
 
         $triggers->whereHas('device_access', function($q)use($branch_id){
             $q->where('is_trigger_registration', 1);
-            $q->whereRaw(" json_contains(branch_ids, '?') ", $branch_id);
+            //$q->whereRaw(" json_contains(branch_ids, '?') ", $branch_id);
             $q->where('is_active', 1);
         });
 
+
+        return ["status"=>0, "message"=>"Auto register completed." ];
 
         //Execute triggers by Loop
         $triggerList = $triggers->get();
@@ -63,7 +65,6 @@ class DeviceAccountHelper {
             static::register($request, $target_name, $target_id, $trigger->id);
         }
 
-        return ["status"=>0, "message"=>"Auto register completed." ];
 
     }
 
