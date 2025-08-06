@@ -52,7 +52,7 @@ class DeviceTemplateTrigger extends Model
     }
 
     public function device_accounts(){
-        return $this->hasMany(DeviceAccount::class, 'target_name', 'target_name');
+        return $this->hasMany(DeviceAccount::class, 'device_template_trigger_id');
     }
 
 

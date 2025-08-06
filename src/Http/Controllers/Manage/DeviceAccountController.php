@@ -29,10 +29,14 @@ class DeviceAccountController extends _CommonController
         $list = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->where('is_active', true);
         $list->whereIn('device_access_id', $deviceAccessIds );
         $list->where('target_name', $request->target_name);
-        $list->with(['device_access','device_accounts'=>function($q)use($request){
-            $q->where('target_id', $request->target_id);
-            $q->limit(1);
-        }]);
+        $list->with([
+            'device_access',
+            'device_accounts'=>function($q)use($request){
+                $q->where('target_id', $request->target_id);
+                $q->where('target_name', $request->target_name);
+                $q->limit(1);
+            }
+        ]);
 
         return $list->get();
 

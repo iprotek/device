@@ -273,7 +273,7 @@ class MikrotikHelper
                     "target_name"=>$target_name,
                     "target_id"=>$target_id,
                     "account_id"=>$checkRegResult["id"],
-                    "is_active"=>false,
+                    "is_active"=>1,
                     "active_info"=>"Linked account"
                 ]);
             }else{
@@ -283,7 +283,7 @@ class MikrotikHelper
                     "target_name"=>$target_name,
                     "target_id"=>$target_id,
                     "account_id"=>$checkRegResult["id"],
-                    "is_active"=>false,
+                    "is_active"=>1,
                     "active_info"=>"Linked account"
                 ]);
             }
@@ -305,7 +305,7 @@ class MikrotikHelper
                         "target_name"=>$target_name,
                         "target_id"=>$target_id,
                         "account_id"=>$checkRegResult["id"],
-                        "is_active"=>false,
+                        "is_active"=>1,
                         "active_info"=>"Regisration Successfull"
                     ]);
                 }else{
@@ -314,7 +314,7 @@ class MikrotikHelper
                         "target_name"=>$target_name,
                         "target_id"=>$target_id,
                         "account_id"=>$checkRegResult["id"],
-                        "is_active"=>false,
+                        "is_active"=>1,
                         "active_info"=>"Regisration Successfull"
                     ]);
                 }
