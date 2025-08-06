@@ -42,7 +42,7 @@ class DeviceAccountHelper {
 
 
         //checking for active device with enabled register
-        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>$target_id, "target_name"=>$target_name, "enable_register"=>1]);
+        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>0, "target_name"=>$target_name, "enable_register"=>1]);
 
         //Check if has trigger in specific branch
 
