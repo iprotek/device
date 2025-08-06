@@ -15,7 +15,7 @@
     },
     "require": {
         "php": ">=7.0.0",
-        "illuminate/support": "^8.0|^9.0|^10.0",
+        "illuminate/support": "^8.0|^9.0|^10.0|^11.0",
         "evilfreelancer/routeros-api-php": "^1.5",
         "phpseclib/phpseclib": "^3.0.36"
     },
