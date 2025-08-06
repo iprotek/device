@@ -42,13 +42,16 @@ class DeviceAccountHelper {
 
 
         //checking for active device with enabled register
-        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>$target_id, "target_name"=>$target_name, "enable_register"=>true]);
+        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>$target_id, "target_name"=>$target_name, "enable_register"=>1]);
 
         //Check if has trigger in specific branch
+
+        $triggers->with(['device_access']);
+
         $triggers->whereHas('device_access', function($q)use($branch_id){
-            $q->where('is_trigger_registration', true);
-            $q->whereRaw(" json_contains(branch_ids, '?')", $branch_id);
-            $q->where('is_active', true);
+            $q->where('is_trigger_registration', 1);
+            $q->whereRaw(" json_contains(branch_ids, '?') ", $branch_id);
+            $q->where('is_active', 1);
         });
 
 
