@@ -57,9 +57,6 @@ class DeviceAccountHelper {
         //Execute triggers by Loop
         $triggerList = $triggers->get();
 
-        Log::error($triggerList);
-        Log::error($branch_id);
-
         foreach($triggerList as $trigger){
             static::register($request, $target_name, $target_id, $trigger->id);
         }
