@@ -27,7 +27,7 @@ class SshHelper
         
         //EVILFREELANCER
 
-        $command = '/system identity print';
+        $command = 'login';
         try {
             
             $ssh = new SSH2($host, $port); // Specify the custom port
@@ -36,11 +36,7 @@ class SshHelper
                 return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
             }
 
-            // Execute a MikroTik command
-            $output = $ssh->exec($command);
-            //print_r($response);
-            //Log::error( $output );
-            return [ "status"=>0, "message"=> $output, "command"=>$command ];
+            return [ "status"=>1, "message"=> "Login Successfully.", "command"=>$command ];
         } catch (\Exception $e) {
             //Log::error( "GG". $e->getMessage() );
             return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
