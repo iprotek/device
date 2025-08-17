@@ -11,7 +11,7 @@ use iProtek\Device\Http\Controllers\Manage\DeviceAccountController;
 use Illuminate\Http\Request; 
 
  
-Route::prefix('/devices')->name('.device')->group(function(){
+Route::prefix('/devices')->name('.devices')->group(function(){
     
     //LIST & GET
     Route::get('/list', [DeviceAccessController::class, 'list'])->name('.list');

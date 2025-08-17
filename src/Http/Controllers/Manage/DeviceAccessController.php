@@ -51,6 +51,7 @@ class DeviceAccessController extends _CommonController
             $dynamic_table->where('group_id', PayHttp::target_group_id($request) );
         }
 
+
         //DELETE AT
         if(\Illuminate\Support\Facades\Schema::hasColumn($data_schema, 'deleted_at')){
             $dynamic_table->whereRaw(' deleted_at IS NULL ' );
@@ -68,6 +69,10 @@ class DeviceAccessController extends _CommonController
 
     public function list_selection(Request $request){
         $deviceList = PayModelHelper::get(DeviceAccess::class, $request, []);
+
+        if($request->type){
+            $deviceList->where('type', $request->type);
+        }
 
         if($request->search_text){
             $search_text = '%'.str_replace(' ', '%', $request->search_text).'%';
