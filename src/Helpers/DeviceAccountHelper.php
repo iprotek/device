@@ -17,19 +17,35 @@ use iProtek\Core\Helpers\PayModelHelper;
 class DeviceAccountHelper {
 
 
-    
-    static function log( $target_name, $target_id, $device_access_id, $command, $response, $log_info, $status_id, $trigger_id){
-
-        DeviceAccessTriggerLog::create([
-            "target_name"=>$target_name,
-            "target_id"=> $target_id,
-            "device_access_id"=> $device_access_id,
-            "command"=> $command,
-            "response"=> $response,
-            "log_info"=> $log_info,
-            "status_id"=> $status_id,
-            "device_template_trigger_id"=> $trigger_id
-        ]);
+    /**
+     * Log device access trigger events.
+     */
+    static function log( $target_name, $target_id, $device_access_id, $command, $response, $log_info, $status_id, $trigger_id, Request $request = null){
+        if($request)
+        {
+            PayModelHelper::create(DeviceAccessTriggerLog::class, $request, [
+                "target_name"=>$target_name,
+                "target_id"=> $target_id,
+                "device_access_id"=> $device_access_id,
+                "command"=> $command,
+                "response"=> $response,
+                "log_info"=> $log_info,
+                "status_id"=> $status_id,
+                "device_template_trigger_id"=> $trigger_id
+            ]);
+        }
+        else{
+            DeviceAccessTriggerLog::create([
+                "target_name"=>$target_name,
+                "target_id"=> $target_id,
+                "device_access_id"=> $device_access_id,
+                "command"=> $command,
+                "response"=> $response,
+                "log_info"=> $log_info,
+                "status_id"=> $status_id,
+                "device_template_trigger_id"=> $trigger_id
+            ]);
+        }
     }
 
 
