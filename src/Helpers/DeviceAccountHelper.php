@@ -23,7 +23,7 @@ class DeviceAccountHelper {
     static function log( $target_name, $target_id, $device_access_id, $command, $response, $log_info, $status_id, $trigger_id, Request $request = null){
         if($request)
         {
-            PayModelHelper::create(DeviceAccessTriggerLog::class, $request, [
+            return PayModelHelper::create(DeviceAccessTriggerLog::class, $request, [
                 "target_name"=>$target_name,
                 "target_id"=> $target_id,
                 "device_access_id"=> $device_access_id,
@@ -35,7 +35,7 @@ class DeviceAccountHelper {
             ]);
         }
         else{
-            DeviceAccessTriggerLog::create([
+            return DeviceAccessTriggerLog::create([
                 "target_name"=>$target_name,
                 "target_id"=> $target_id,
                 "device_access_id"=> $device_access_id,
