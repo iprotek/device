@@ -33,11 +33,11 @@ class DeviceAccess extends Model
         "is_trigger_registration"
     ];
 
-    /*
+    
     protected $hidden = [
         "password"
     ];
-    */
+    
 
     protected $casts = [
         "branch_ids"=> "json",
