@@ -77,7 +77,7 @@ class DeviceAccountController extends _CommonController
         ])->validated();
         
         $target_name = $requestedData['target_name'];
-        $target_id = 1;//$requestedData['target_id'];
+        $target_id = $requestedData['target_id'];
         $device_template_trigger_id = $requestedData['device_template_trigger_id'];
 
 
