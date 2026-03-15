@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Helpers\Console\SshHelper;
+use iProtek\Device\Helpers\Console\TelnetHelper;
 use iProtek\Device\Models\DeviceAccessTriggerLog;
 
 class DeviceAccessController extends _CommonController
@@ -105,6 +106,15 @@ class DeviceAccessController extends _CommonController
             return $result;
             
         }
+        else if($data['type'] == "telnet"){
+            $result =  TelnetHelper::credential_login_check($data);
+            
+            if($result["status"] == 0 ){
+                return ["status"=>0, "message"=>$result["message"]];
+            }
+            return $result;
+
+        }
 
         return ["status"=>0, "message"=>"Type [".$data['type']."] not supported for checking yet."];
     }
@@ -133,7 +143,7 @@ class DeviceAccessController extends _CommonController
             "name"=>$request->name
         ])->first();
 
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet"])){
             return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 
@@ -250,7 +260,7 @@ class DeviceAccessController extends _CommonController
             "is_trigger_registration"=>"required"
         ])->validate();
         
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet"])){
             return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 
