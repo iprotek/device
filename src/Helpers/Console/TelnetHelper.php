@@ -31,7 +31,7 @@ class TelnetHelper
             //$ssh = new SSH2($host, $port); // Specify the custom port
             $telnet = new Telnet($host, $port);
 
-            if (!$ssh->login($user, $pass)) {
+            if (!$telnet->login($user, $pass)) {
                 return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
             }
 
