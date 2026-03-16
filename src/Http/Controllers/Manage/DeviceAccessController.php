@@ -74,7 +74,7 @@ class DeviceAccessController extends _CommonController
 
         if($request->type){
             $types = explode(',', $request->type);
-            $deviceList->whereIn('type', $type);
+            $deviceList->whereIn('type', $types);
         }
 
         if($request->search_text){
