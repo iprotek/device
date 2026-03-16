@@ -31,7 +31,7 @@ class TelnetHelper
         try {
             
             //$ssh = new SSH2($host, $port); // Specify the custom port
-            $telnet = new Telnet($host, $port);
+            $telnet = new Telnet($host);
 
             $telnet->connect();
 
