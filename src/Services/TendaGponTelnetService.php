@@ -53,7 +53,7 @@ class TendaGponTelnetService
         return false;
     }
 
-    public function sendCommand($command, $wait = 0.2)
+    public function sendCommand($command, $wait = 0.2, $charCheck=null)
     {
         fwrite($this->fp, $command . "\r\n");
         usleep($wait * 1000000); // wait for response
@@ -63,6 +63,28 @@ class TendaGponTelnetService
             $output .= $line;
             if (feof($this->fp)) break;
         }
+        return $output;
+    }
+
+    
+    public function sendCommandCheck($command, $charCheck=null, $wait = 0.2)
+    {
+        fwrite($this->fp, $command . "\r\n");
+        usleep($wait * 1000000); // wait for response
+
+        $output = '';
+        while ($line = fgets($this->fp, 128)) {
+            $output .= $line;
+            if (feof($this->fp)) break;
+        }
+        if($charCheck){
+
+            if (strpos($output, $charCheck) !== false ) {
+                return true;
+            }
+            return false;
+        }
+
         return $output;
     }
 
