@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use iProtek\Core\Models\Cms;
 use iProtek\Core\Enums\CmsType;
-use phpseclib3\Net\Telnet;
+use phpseclib\Net\Telnet;
 
 class TelnetHelper
 {  
