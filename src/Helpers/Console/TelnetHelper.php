@@ -38,8 +38,10 @@ class TelnetHelper
             Log::error($user.$pass);
 
             if (!$telnet->login($user, $pass)) {
+                Log::error("Failed");
                 return [ "status"=>0, "message"=>"Login Failed $user=".$pass, "command"=>$command ];
             }
+            Log::error("Success");
 
             return [ "status"=>1, "message"=> "Login Successfully.", "command"=>$command ];
         } catch (\Exception $e) {
