@@ -12,6 +12,7 @@ use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Helpers\Console\SshHelper;
 use iProtek\Device\Helpers\Console\TelnetHelper;
+use iProtek\Device\Helpers\Console\TendaGponHelper;
 use iProtek\Device\Models\DeviceAccessTriggerLog;
 
 class DeviceAccessController extends _CommonController
@@ -108,6 +109,15 @@ class DeviceAccessController extends _CommonController
         }
         else if($data['type'] == "telnet"){
             $result =  TelnetHelper::credential_login_check($data);
+            
+            if($result["status"] == 0 ){
+                return ["status"=>0, "message"=>$result["message"]];
+            }
+            return $result;
+
+        }
+        else if($data['type'] == "tenda-gpon"){
+            $result =  TendaGponHelper::credential_login_check($data);
             
             if($result["status"] == 0 ){
                 return ["status"=>0, "message"=>$result["message"]];

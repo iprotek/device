@@ -1,7 +1,7 @@
 <?php
-namespace App\Services;
+namespace iProtek\Device\Services;
 
-class TendaTelnetService
+class TendaGponTelnetService
 {
     protected $host;
     protected $port;
@@ -20,6 +20,37 @@ class TendaTelnetService
             throw new \Exception("Cannot connect: $errstr ($errno)");
         }
         stream_set_blocking($this->fp, true);
+    }
+
+    
+    public function login($username, $password, $wait = 0.2)
+    {
+        if (!$this->fp) {
+            throw new \Exception("Not connected");
+        }
+
+        // send username
+        fwrite($this->fp, $username . "\r\n");
+        usleep($wait * 1000000);
+
+        // send password
+        fwrite($this->fp, $password . "\r\n");
+        usleep($wait * 1000000);
+
+        // optional: read any response
+        $output = '';
+        while ($line = fgets($this->fp, 128)) {
+            $output .= $line;
+            if (feof($this->fp)) break;
+        }
+
+        // simple check if login “succeeded”
+        // many Tenda devices return a prompt like >
+        if (strpos($output, '>') !== false || strpos($output, '#') !== false) {
+            return true;
+        }
+
+        return false;
     }
 
     public function sendCommand($command, $wait = 0.2)
