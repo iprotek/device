@@ -73,7 +73,8 @@ class DeviceAccessController extends _CommonController
         $deviceList = PayModelHelper::get(DeviceAccess::class, $request, []);
 
         if($request->type){
-            $deviceList->where('type', $request->type);
+            $types = explode(',', $request->type);
+            $deviceList->whereIn('type', $request->type);
         }
 
         if($request->search_text){
