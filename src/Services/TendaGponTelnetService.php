@@ -19,7 +19,7 @@ class TendaGponTelnetService
         if (!$this->fp) {
             throw new \Exception("Cannot connect: $errstr ($errno)");
         }
-        stream_set_blocking($this->fp, true);
+        stream_set_blocking($this->fp, false);
     }
 
     
