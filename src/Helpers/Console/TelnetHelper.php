@@ -45,7 +45,7 @@ class TelnetHelper
 
             return [ "status"=>1, "message"=> "Login Successfully.", "command"=>$command ];
         } catch (\Exception $e) {
-            //Log::error( "GG". $e->getMessage() );
+            Log::error( "GG". $e->getMessage() );
             return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
         }
 
