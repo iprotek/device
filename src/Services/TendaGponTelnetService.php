@@ -5,7 +5,7 @@ class TendaGponTelnetService
 {
     protected $host;
     protected $port;
-    protected $fp;
+    public $fp;
 
     public function __construct($host, $port = 23)
     {
