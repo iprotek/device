@@ -13,9 +13,9 @@ class TendaGponTelnetService
         $this->port = $port;
     }
 
-    public function connect()
+    public function connect($timeout=5)
     {
-        $this->fp = fsockopen($this->host, $this->port, $errno, $errstr, 5);
+        $this->fp = fsockopen($this->host, $this->port, $errno, $errstr, $timeout);
         if (!$this->fp) {
             throw new \Exception("Cannot connect: $errstr ($errno)");
         }
