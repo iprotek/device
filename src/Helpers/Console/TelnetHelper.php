@@ -35,11 +35,11 @@ class TelnetHelper
 
             $client->connect("$host:$port");
 
-            $client->waitForPrompt('Username:');
-            $client->execute($user);
+            //$client->waitForPrompt('Username:');
+            $client->execute($user."\r\n");
 
-            $client->waitForPrompt('Password:');
-            $client->execute($pass);
+            //$client->waitForPrompt('Password:');
+            $client->execute($pass."\r\n");
 
             $result = $client->execute('uptime');
 
