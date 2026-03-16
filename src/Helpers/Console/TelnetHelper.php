@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Session;
 use iProtek\Core\Models\Cms;
 use iProtek\Core\Enums\CmsType;
 //use phpseclib\Net\Telnet;
-use meklis\network\Telnet;
+use Graze\TelnetClient\TelnetClient;
 
 class TelnetHelper
 {  
@@ -31,19 +31,19 @@ class TelnetHelper
         try {
             
             //$ssh = new SSH2($host, $port); // Specify the custom port
-            $telnet = new Telnet($host);
+            $client = TelnetClient::factory();
 
-            $telnet->connect();
+            $client->connect("$host:$port");
 
-            Log::error($user.$pass);
+            $client->waitForPrompt('Username:');
+            $client->execute($user);
 
-            if (!$telnet->login($user, $pass)) {
-                Log::error("Failed");
-                return [ "status"=>0, "message"=>"Login Failed $user=".$pass, "command"=>$command ];
-            }
-            Log::error("Success");
+            $client->waitForPrompt('Password:');
+            $client->execute($pass);
 
-            return [ "status"=>1, "message"=> "Login Successfully.", "command"=>$command ];
+            $result = $client->execute('uptime');
+
+            return [ "status"=>1, "message"=> "Login Successfully.".$result, "command"=>$command ];
         } catch (\Exception $e) {
             Log::error( "GG". $e->getMessage() );
             return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
