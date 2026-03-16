@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use iProtek\Core\Models\Cms;
 use iProtek\Core\Enums\CmsType;
-use phpseclib\Net\Telnet;
+//use phpseclib\Net\Telnet;
+use meklis\network\Telnet;
 
 class TelnetHelper
 {  
@@ -31,6 +32,8 @@ class TelnetHelper
             
             //$ssh = new SSH2($host, $port); // Specify the custom port
             $telnet = new Telnet($host, $port);
+
+            $telnet->connect();
 
             if (!$telnet->login($user, $pass)) {
                 return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
