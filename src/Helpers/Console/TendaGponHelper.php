@@ -33,7 +33,7 @@ class TendaGponHelper
             
             //$ssh = new SSH2($host, $port); // Specify the custom port
             $service = new TendaGponTelnetService($host, $port);
-            $service->connect(20);
+            $service->connect(10);
 
             if (!$service->login($user, $pass)) {
                 return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
