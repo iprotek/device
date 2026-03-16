@@ -143,7 +143,7 @@ class DeviceAccessController extends _CommonController
             "name"=>$request->name
         ])->first();
 
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet", "tenda-gpon"])){
             return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 
@@ -260,7 +260,7 @@ class DeviceAccessController extends _CommonController
             "is_trigger_registration"=>"required"
         ])->validate();
         
-        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet"])){
+        if(!in_array($request->type, ["mikrotik", "windows", "ssh", "ngteco-biometrics", "zkteco-biometrics", "telnet", "tenda-gpon"])){
             return [ "status"=>0, "message"=>"Device Type is not supported: ".$request->type ];
         }
 

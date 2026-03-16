@@ -18,6 +18,7 @@ class TelnetHelper
         //port
         //password
         //Log::error($credential);
+        return [ "status"=>0, "message"=> "Not available.", "command"=>$command ];
         
         $host = $credential['host'];
         $user = $credential['user'];
@@ -41,7 +42,7 @@ class TelnetHelper
             //$client->waitForPrompt('Password:');
             $client->execute($pass);
 
-            $result = $client->execute('uptime');
+            $result = $client->execute('display time');
 
             return [ "status"=>1, "message"=> "Login Successfully.".$result, "command"=>$command ];
         } catch (\Exception $e) {
