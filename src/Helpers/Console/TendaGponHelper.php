@@ -35,7 +35,7 @@ class TendaGponHelper
             $service = new TendaGponTelnetService($host, $port);
             $service->connect();
 
-            if (!$telnet->login($user, $pass)) {
+            if (!$service->login($user, $pass)) {
                 return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
             }
 
