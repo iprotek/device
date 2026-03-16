@@ -25,6 +25,7 @@ class TelnetHelper
         $is_ssl = $credential['is_ssl'];
         //Log::error($credential);
                 
+        
         $command = 'login';
         try {
             
@@ -40,6 +41,25 @@ class TelnetHelper
             //Log::error( "GG". $e->getMessage() );
             return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
         }
+
+        /*
+
+        $command = 'login';
+        try {
+            
+            //$ssh = new SSH2($host, $port); // Specify the custom port
+            $telnet = new Telnet($host, $port);
+
+            if (!$telnet->login($user, $pass)) {
+                return [ "status"=>0, "message"=>"Login Failed", "command"=>$command ];
+            }
+
+            return [ "status"=>1, "message"=> "Login Successfully.", "command"=>$command ];
+        } catch (\Exception $e) {
+            //Log::error( "GG". $e->getMessage() );
+            return [ "status"=>0, "message"=> $e->getMessage(), "command"=>$command ];
+        }
+            */
 
     }
 
