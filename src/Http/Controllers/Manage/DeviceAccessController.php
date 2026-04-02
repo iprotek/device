@@ -34,6 +34,10 @@ class DeviceAccessController extends _CommonController
             $deviceList->where('type', $request->type);
         }
 
+        if($request->has('branch_id')){
+            $request->whereJsonContains('branch_ids', $request->branch_id);
+        }
+
         if(!$request->has('show_pass')){
             $columns = Schema::getColumnListing((new DeviceAccess)->getTable());
             $columns = array_diff($columns, ['password']);
