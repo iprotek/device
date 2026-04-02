@@ -16,7 +16,7 @@ use RouterOS\Query as MikroTikQuery;
 class MikrotikHelper
 {  
 
-    public static function execute(DeviceAccess $deviceAccess, MikroTikClient $query){
+    public static function execute(DeviceAccess $deviceAccess, MikroTikQuery $query){
         $result = null;
 
         //Check if device is mikrotik
