@@ -35,7 +35,7 @@ class DeviceAccessController extends _CommonController
         }
 
         if($request->has('branch_id')){
-            $request->whereJsonContains('branch_ids', $request->branch_id);
+            $deviceList->whereJsonContains('branch_ids', $request->branch_id);
         }
 
         if(!$request->has('show_pass')){
@@ -84,6 +84,10 @@ class DeviceAccessController extends _CommonController
         if($request->search_text){
             $search_text = '%'.str_replace(' ', '%', $request->search_text).'%';
            $deviceList->whereRaw(' CONCAT(type,name,user,port) LIKE ?', [$search_text]); 
+        }
+
+        if($request->has('branch_id')){
+            $deviceList->whereJsonContains('branch_ids', $request->branch_id);
         }
 
         if($request->only_active == 'yes'){
