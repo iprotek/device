@@ -87,7 +87,7 @@ class DeviceAccessController extends _CommonController
         }
 
         if($request->has('branch_id')){
-            $deviceList->whereJsonContains('branch_ids', $request->branch_id);
+            $deviceList->whereJsonContains('branch_ids', $request->branch_id * 1);
         }
 
         if($request->only_active == 'yes'){
