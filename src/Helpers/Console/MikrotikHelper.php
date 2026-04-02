@@ -15,6 +15,41 @@ use RouterOS\Query as MikroTikQuery;
 
 class MikrotikHelper
 {  
+
+    public static function execute(DeviceAccess $deviceAccess, MikroTikClient $query){
+        $result = null;
+
+        //Check if device is mikrotik
+        if($deviceAccess->type != 'mikrotik'){
+            return ["status"=>0, "message"=>"Only Mikrotik accepted."];
+        }
+
+        $login = static::credential_login_check( [
+            "host"=>$deviceAccess->host,
+            "user"=>$deviceAccess->user,
+            "password"=>$deviceAccess->password,
+            "port"=>$deviceAccess->port,
+            'is_ssl'=>$deviceAccess->is_ssl
+        ] , true);
+
+        if($login['status'] == 0)
+                return $login;
+
+        try{
+
+            $client = $login['client'];
+            $result = $client->query($query)->read();
+        
+        }catch (\Exception $e) {
+            return [ "status"=>0, "message"=> "Command invalidated." ];
+        }
+
+
+        return ["status"=>1, "message"=>"Successfully Executed.", "result"=>$result];
+    }
+
+
+
     public static function credential_login_check(array $credential, $get_client = false){
         //CREDENTIAL CHECK
         //host
