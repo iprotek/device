@@ -412,7 +412,7 @@ class DeviceAccountHelper {
                 
                 if($device_access->type == 'mikrotik'){
                     MikrotikHelper::inactive(
-                        $DeviceAccount, 
+                        $deviceAccount, 
                         $translate,
                         $requestedData['target_name'],
                         $requestedData['target_id']
