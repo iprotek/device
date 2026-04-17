@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('field_name');
             $table->string('value');
 
-
             $table->timestamps();
         });
     }
