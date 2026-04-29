@@ -7,6 +7,7 @@ use iProtek\Core\Http\Controllers\_Common\_CommonController;
 use iProtek\Core\Helpers\PayModelHelper;
 
 use iProtek\Device\Models\DeviceTemplateTrigger; 
+use iProtek\Device\Models\DeviceTemplateTriggerTargetParam;
 
 class DeviceTemplateTriggerController extends _CommonController
 {
@@ -36,7 +37,7 @@ class DeviceTemplateTriggerController extends _CommonController
         
         $template = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'=>function($q){
             $q->select('id', 'name', 'type', \DB::raw(" CONCAT(name,' - [ ', type, ' ] ' ) as text"));
-        }])->where($data);
+        }])->with('target_params')->where($data);
 
         return $template->first();
 
@@ -60,7 +61,8 @@ class DeviceTemplateTriggerController extends _CommonController
             "enable_remove"=>"required",
             "remove_command_template"=>"nullable",
             "is_active"=>"required",
-            "inactive_reason"=>"nullable"
+            "inactive_reason"=>"nullable",
+            "trigger_fields"=>"required"
         ])->validated();
 
 
@@ -72,6 +74,18 @@ class DeviceTemplateTriggerController extends _CommonController
 
         $created = PayModelHelper::create(DeviceTemplateTrigger::class, $request, $data);
 
+        //ADD/UPDATE FILTER PARAM HERE
+        $trigger_fields = json_decode($request->trigger_fields, true); //DeviceTemplateTriggerTargetParam
+        $order_no=1;
+        foreach($trigger_fields as $trigger_field){
+            PayModelHelper::create(DeviceTemplateTriggerTargetParam::class, $request, [
+                "device_template_trigger_id"=>$created->id,
+                "order_no"=>$order_no,
+                "field_name"=>$trigger_field['name'],
+                "value"=>$trigger_field['value']
+            ]);
+            $order_no++;
+        }
 
         return ["status"=>1, "message"=>"Successfully Added","data"=> $created];
     }
@@ -93,7 +107,8 @@ class DeviceTemplateTriggerController extends _CommonController
             "active_command_template"=>"nullable",
             "enable_remove"=>"required",
             "remove_command_template"=>"nullable",
-            "is_active"=>"required"
+            "is_active"=>"required",
+            "trigger_fields"=>"required"
         ])->validated();
         $template = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->find($request->id);
 
@@ -103,8 +118,34 @@ class DeviceTemplateTriggerController extends _CommonController
 
         PayModelHelper::update($template, $request, $data);
 
+        //ADD&UPDATE FILTER PARAM HERE
+        $trigger_fields = json_decode($request->trigger_fields, true); //DeviceTemplateTriggerTargetParam
+        $order_no=1;
 
-        
+        //CLEAN REMOVED
+        $ids = array_column($trigger_fields, 'id');
+        DeviceTemplateTriggerTargetParam::where('device_template_trigger_id', $template->id)->whereNotIn('id', $ids)->delete();
+
+        foreach($trigger_fields as $trigger_field){
+            $devParam =  DeviceTemplateTriggerTargetParam::where('device_template_trigger_id', $template->id)->where('id', $trigger_field['id'])->first();
+            if(!$devParam){
+                PayModelHelper::create(DeviceTemplateTriggerTargetParam::class, $request, [
+                    "device_template_trigger_id"=>$template->id,
+                    "order_no"=>$order_no,
+                    "field_name"=>$trigger_field['name'],
+                    "value"=>$trigger_field['value']
+                ]);
+            }
+            else{
+                $devParam->order_no = $order_no;
+                $devParam->field_name = $trigger_field['name'];
+                $devParam->value = $trigger_field['value'];
+                if($devParam->isDirty()){
+                    $devParam->save();
+                }
+            }
+            $order_no++;
+        }
         return ["status"=>1, "message"=>"Successfully Updated","data"=> $template];
 
     }
@@ -118,6 +159,7 @@ class DeviceTemplateTriggerController extends _CommonController
         }
 
         PayModelHelper::delete($template, $request);
+
 
         return ["status"=>1, "message"=>"Successfully deleted."];
     }

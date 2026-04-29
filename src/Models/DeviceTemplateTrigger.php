@@ -55,5 +55,9 @@ class DeviceTemplateTrigger extends Model
         return $this->hasMany(DeviceAccount::class, 'device_template_trigger_id');
     }
 
+    public function target_params(){
+        return $this->hasMany(DeviceTemplateTriggerTargetParam::class, 'device_template_trigger_id')->orderBy('order_no','ASC');
+    }
+
 
 }
