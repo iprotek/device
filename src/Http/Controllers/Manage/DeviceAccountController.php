@@ -10,6 +10,7 @@ use iProtek\Device\Models\DeviceTemplateTrigger;
 use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Models\DeviceAccount;
 use iProtek\Device\Helpers\DeviceHelper;
+use Illuminate\Support\Facades\Log; 
 
 class DeviceAccountController extends _CommonController
 {
@@ -21,13 +22,19 @@ class DeviceAccountController extends _CommonController
         //branch_id
         //target_name
         //target_id
+        $requestData = $this->validate($request, 
+        [
+            "branch_id"=>"required",
+            "target_name"=>"required",
+            "target_id"=>"required"
+        ])->validated();
 
-        //TODO: branch_id and existing account
-        $deviceAccessIds = DeviceAccess::whereRaw(' JSON_CONTAINS( branch_ids, ? ) ', [$request->branch_id])->get()->pluck('id')->toArray();
 
-        //DeviceTemplateTrigger
-        $list = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->where('is_active', true);
-        $list->whereIn('device_access_id', $deviceAccessIds );
+        $listAllowedIds = DeviceHelper::allow_template_triggers($request->branch_id, $request->target_name, $request->target_id);
+
+
+        $list = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->whereIn('id', $listAllowedIds)->where('is_active', true);
+        //$list->whereIn('device_access_id', $deviceAccessIds );
         $list->where('target_name', $request->target_name);
         $list->with([
             'device_access',

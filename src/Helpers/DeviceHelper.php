@@ -5,6 +5,8 @@ use DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use iProtek\Device\Helpers\DeviceVariableHelper;
+use iProtek\Device\Models\DeviceTemplateTrigger;
+use iProtek\Device\Models\DeviceAccess;
 
 class DeviceHelper
 { 
@@ -29,6 +31,40 @@ class DeviceHelper
 
         return $translate;
          
+
+    }
+
+    public static function allow_template_triggers($branch_id, $target_name, $target_id){
+
+        //TODO: branch_id and existing account
+        $deviceAccessIds = DeviceAccess::whereRaw(' JSON_CONTAINS( branch_ids, ? ) ', [$branch_id])->get()->pluck('id')->toArray();
+
+        //DeviceTemplateTrigger
+        //CHECK IF ALLOWED
+        $templateList = DeviceTemplateTrigger::whereIn('device_access_id', $deviceAccessIds)
+            ->where('target_name', $target_name)->with(['target_params'])->get();
+        $listAllowedIds = [];
+        
+        if(count($templateList) < 0)
+            return [];
+
+        foreach($templateList as $temp){
+            $params = [];
+
+            foreach($temp->target_params as $par){
+                $params[$par->field_name] = $par->value;
+            }
+            if(count($params)){
+                $hasExist = \DB::table($temp->target_name)->where('id',$target_id)->where($params)->first();
+                if($hasExist){
+                    $listAllowedIds[] = $temp->id;
+                }
+            }
+            else{
+                $listAllowedIds[] = $temp->id;
+            }
+        }
+        return $listAllowedIds;
 
     }
 }
