@@ -62,9 +62,7 @@ class DeviceAccessController extends _CommonController
             $triggerFieldsList = json_decode($request->trigger_fields, true);
         }
 
-        Log::error($triggerFieldsList);
-
-
+        
         $dynamic_table = \DB::table($data_schema);
 
         //QUERY FROM $triggerFieldsList
