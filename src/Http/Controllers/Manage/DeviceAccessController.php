@@ -14,6 +14,8 @@ use iProtek\Device\Helpers\Console\SshHelper;
 use iProtek\Device\Helpers\Console\TelnetHelper;
 use iProtek\Device\Helpers\Console\TendaGponHelper;
 use iProtek\Device\Models\DeviceAccessTriggerLog;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; 
 
 class DeviceAccessController extends _CommonController
 {
@@ -51,7 +53,26 @@ class DeviceAccessController extends _CommonController
 
         $data_schema = $request->data_schema;
 
+        if (!Schema::hasTable( $data_schema)) {
+            return abort(404, 'NOT FOUND');
+        }
+
+        $triggerFieldsList = [];
+        if($request->trigger_fields){
+            $triggerFieldsList = json_decode($request->trigger_fields, true);
+        }
+
+        Log::error($triggerFieldsList);
+
+
         $dynamic_table = \DB::table($data_schema);
+
+        //QUERY FROM $triggerFieldsList
+        foreach($triggerFieldsList as $triggerField){
+            if(\Illuminate\Support\Facades\Schema::hasColumn($data_schema,  $triggerField['name'])){
+                $dynamic_table->where($triggerField['name'], $triggerField['value'] );
+            }
+        }
 
         if(\Illuminate\Support\Facades\Schema::hasColumn($data_schema, 'group_id')){
             $dynamic_table->where('group_id', PayHttp::target_group_id($request) );
@@ -363,5 +384,16 @@ class DeviceAccessController extends _CommonController
         
         return ["status"=>1, "message"=>"Successfully removed."];
 
+    }
+
+    public function target_table_info(Request $request){
+        $this->validate($request, ['target'=>"required"]);
+        $table = $request->target;
+        if (!Schema::hasTable($table)) {
+            return [];
+        }
+
+        $columns = \DB::getSchemaBuilder()->getColumns($table);
+        return $columns;
     }
 }

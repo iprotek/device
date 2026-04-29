@@ -34,6 +34,8 @@ Route::prefix('/devices')->name('.devices')->group(function(){
 
     Route::get('dynamic-selection', [DeviceAccessController::class, 'dynamic_selection'])->name('.dynamic-selection');
 
+    Route::get('target-table-info', [DeviceAccessController::class, 'target_table_info'])->name('.target-table-info');
+
     Route::prefix('accounts')->name('.accounts')->group(function(){
 
         //LIST
