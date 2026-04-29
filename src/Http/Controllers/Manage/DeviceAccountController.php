@@ -30,7 +30,7 @@ class DeviceAccountController extends _CommonController
         ])->validated();
 
 
-        $listAllowedIds = DeviceHelper::allow_template_triggers($request->branch_id, $request->target_name, $request->target_id);
+        $listAllowedIds = DeviceHelper::allowed_template_trigger_ids($request->branch_id, $request->target_name, $request->target_id);
 
 
         $list = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->whereIn('id', $listAllowedIds)->where('is_active', true);

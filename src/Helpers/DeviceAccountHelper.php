@@ -50,15 +50,19 @@ class DeviceAccountHelper {
 
 
     //This should be placed when adding new entry
-    public static function autoRegister(Request $request, $target_id, $target_name, $branch_id){
+    public static function autoRegister(Request $request, $target_id, $target_name, $branch_id, $field_branch_id='branch_id'){
 
         //PREVENT ENTRIES FROM EMPTY REQUEST
         if($request === null)
             return;
 
+        //TODO::Test update
+        $templateIds = DeviceHelper::allowed_template_trigger_ids($branch_id, $target_name, $target_id, $field_branch_id);
+
 
         //checking for active device with enabled register
-        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>0, "target_name"=>$target_name, "enable_register"=>1]);
+        $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>0, "target_name"=>$target_name, "enable_register"=>1])
+                        ->whereIn('id', $templateIds);
 
         //Check if has trigger in specific branch
 
@@ -187,13 +191,15 @@ class DeviceAccountHelper {
     }
 
     //UPDATES
-    public static function update($target_name, $target_id, $force=false){
+    public static function update($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
         
         $current_device_trigger = null;
         try{
 
+            $templateIds = DeviceHelper::allowed_template_trigger_ids(0, $target_name, $target_id, $field_branch_id);
+
             //CHECK ACTIVE TRIGGERS THEN ACTIVATE THE ACCOUNT ASSOCIATED
-            $device_triggers = DeviceTemplateTrigger::with(['device_access'])->where(['target_name'=> $target_name, 'enable_update'=>true, 'is_active'=>true])->get();
+            $device_triggers = DeviceTemplateTrigger::whereIn('id', $templateIds)->with(['device_access'])->where(['target_name'=> $target_name, 'enable_update'=>true, 'is_active'=>true])->get();
 
 
             if( count($device_triggers) <= 0){
@@ -267,13 +273,15 @@ class DeviceAccountHelper {
     }   
 
     //ACTIVATE
-    public static function active($target_name, $target_id, $force=false){
+    public static function active($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
 
         $current_device_trigger = null;
         try{
+            
+            $templateIds = DeviceHelper::allowed_template_trigger_ids(0, $target_name, $target_id, $field_branch_id);
 
             //CHECK ACTIVE TRIGGERS THEN ACTIVATE THE ACCOUNT ASSOCIATED
-            $device_triggers = DeviceTemplateTrigger::with(['device_access'])->where(['target_name'=> $target_name, 'enable_active'=>true, 'is_active'=>true])->get();
+            $device_triggers = DeviceTemplateTrigger::whereIn('id', $templateIds)->with(['device_access'])->where(['target_name'=> $target_name, 'enable_active'=>true, 'is_active'=>true])->get();
 
 
             if( count($device_triggers) <= 0){
@@ -351,13 +359,15 @@ class DeviceAccountHelper {
     }
 
     //INACTIVE
-    public static function inactive($target_name, $target_id, $force=false){
+    public static function inactive($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
         
         $current_device_trigger = null;
         try{
 
+            $templateIds = DeviceHelper::allowed_template_trigger_ids(0, $target_name, $target_id, $field_branch_id);
+
             //CHECK ACTIVE TRIGGERS THEN ACTIVATE THE ACCOUNT ASSOCIATED
-            $device_triggers = DeviceTemplateTrigger::with(['device_access'])->where(['target_name'=> $target_name, 'enable_inactive'=>true, 'is_active'=>true])->get();
+            $device_triggers = DeviceTemplateTrigger::whereIn('id', $templateIds)->with(['device_access'])->where(['target_name'=> $target_name, 'enable_inactive'=>true, 'is_active'=>true])->get();
 
 
             if( count($device_triggers) <= 0){
@@ -435,14 +445,16 @@ class DeviceAccountHelper {
     }
 
     //REMOVE
-    public static function remove($target_name, $target_id, $force=false){
+    public static function remove($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
 
 
         $current_device_trigger = null;
         try{
 
+            $templateIds = DeviceHelper::allowed_template_trigger_ids(0, $target_name, $target_id, $field_branch_id);
+
             //CHECK ACTIVE TRIGGERS THEN ACTIVATE THE ACCOUNT ASSOCIATED
-            $device_triggers = DeviceTemplateTrigger::with(['device_access'])->where(['target_name'=> $target_name, 'enable_remove'=>true, 'is_active'=>true])->get();
+            $device_triggers = DeviceTemplateTrigger::where('id', $templateIds)->with(['device_access'])->where(['target_name'=> $target_name, 'enable_remove'=>true, 'is_active'=>true])->get();
 
 
             if( count($device_triggers) <= 0){

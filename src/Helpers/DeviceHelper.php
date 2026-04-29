@@ -34,7 +34,13 @@ class DeviceHelper
 
     }
 
-    public static function allow_template_triggers($branch_id, $target_name, $target_id){
+    public static function allowed_template_trigger_ids($branch_id, $target_name, $target_id, $field_branch_id='branch_id'){
+
+        if(!$branch_id || $branch_id < 0 || empty($branch_id)){
+           $checkBranch =  \DB::table($target_name)->where('id',$target_id)->first();
+           if(!$checkBranch) return [];
+           $branch_id = $checkBranch->{$field_branch_id};
+        }
 
         //TODO: branch_id and existing account
         $deviceAccessIds = DeviceAccess::whereRaw(' JSON_CONTAINS( branch_ids, ? ) ', [$branch_id])->get()->pluck('id')->toArray();
@@ -55,7 +61,7 @@ class DeviceHelper
                 $params[$par->field_name] = $par->value;
             }
             if(count($params)){
-                $hasExist = \DB::table($temp->target_name)->where('id',$target_id)->where($params)->first();
+                $hasExist = \DB::table($target_name)->where('id',$target_id)->where($params)->first();
                 if($hasExist){
                     $listAllowedIds[] = $temp->id;
                 }
