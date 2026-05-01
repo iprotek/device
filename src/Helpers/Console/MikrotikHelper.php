@@ -10,8 +10,10 @@ use iProtek\Device\Models\DeviceAccount;
 use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Models\DeviceTemplateTrigger;
 use MikrotikAPI\MikrotikAPI;
-use RouterOS\Client as MikroTikClient;
-use RouterOS\Query as MikroTikQuery;
+//use RouterOS\Client as MikroTikClient;
+//use RouterOS\Query as MikroTikQuery;
+use iProtek\Device\Helpers\MClientHelper as MikroTikClient;
+use iProtek\Device\Helpers\MQueryHelper as MikroTikQuery;
 
 class MikrotikHelper
 {  
@@ -119,6 +121,9 @@ class MikrotikHelper
             if(strtolower($part) == 'where'){
                 $is_where = true;
             }
+            else if(strpos($part, '=') === false && strpos($part, '~') === false){
+                $is_where = false;
+            }
 
 
             if (strpos($part, '=') !== false) {
@@ -128,6 +133,13 @@ class MikrotikHelper
                     $query->where($key, $value);
                 else
                     $query->equal($key, $value);
+            }
+            else if(strpos($part, '~') !== false){
+                preg_match('/^([a-zA-Z0-9\-]+)([~!=]+)"(.+)"$/', $part, $matches);
+                $field    = $matches[1]; // mac-address
+                $operator = $matches[2]; // ~
+                $value    = $matches[3];
+                $query->where($field, $operator, "/$value/");
             }
         }
 
@@ -329,7 +341,7 @@ class MikrotikHelper
         //REGISTER
         $registerResult = static::registerAccount($client, $regCommand);
         if($registerResult["status"] == 1){
-            
+            sleep(2);
             //CHECK AGAIN USING USERNAME IF EXISTS
             $checkRegResult = static::checkAccount($client, $checkRegCommand);
             if($checkRegResult["status"] == 1 && $checkRegResult["id"] != 0){
