@@ -43,7 +43,7 @@ class DeviceHelper
         }
 
         //TODO: branch_id and existing account
-        $deviceAccessIds = DeviceAccess::whereRaw(' JSON_CONTAINS( branch_ids, ? ) ', [$branch_id])->get()->pluck('id')->toArray();
+        $deviceAccessIds = DeviceAccess::whereRaw(' JSON_CONTAINS( branch_ids, ? ) ', ["$branch_id"])->get()->pluck('id')->toArray();
 
         //DeviceTemplateTrigger
         //CHECK IF ALLOWED
