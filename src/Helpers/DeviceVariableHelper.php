@@ -5,6 +5,7 @@ use DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use iProtek\Device\Models\DeviceAccount;
+use iProtek\Device\Models\DeviceAccess;
 
 class DeviceVariableHelper
 { 
@@ -12,10 +13,9 @@ class DeviceVariableHelper
      * [account field="id" ] - get the data id
      * [device_account_id] - get the account id from the device upon registration.
      * [account field="plan" ] - get the "plan" field value form target source model.
-     * [account field="User Name" data-json="json"] - get the "User Name" field value form target source custom fields. 
+     * [account field="User Name" data-json="json" connector="_"] - get the "User Name" field value form target source custom fields. 
      */
-    
-    static function account($template_str, $account, $target_name="", $traget_id = ""){
+    static function account($template_str, $account, $target_name="", $traget_id = "", DeviceAccess $device_access=null){
         $sample = $template_str;
 
         // Define the regular expression pattern
@@ -61,7 +61,7 @@ class DeviceVariableHelper
         return $template_str;
     }
 
-    static function device_account_id($template_str, $target_name, $traget_id){
+    static function device_account_id($template_str, $target_name, $traget_id, DeviceAccess $device_access=null){
         
         $sample = $template_str;
 
@@ -93,5 +93,61 @@ class DeviceVariableHelper
         }
         return $template_str;
 
+    }
+    //fn should return string values
+    static function find($template_str, callable $fn=null ){
+
+        // 1. Verify the string starts with [find and ends with ]
+        // We capture everything between them in a group.
+        $mainLine = "";
+        $fieldValues = [];
+        $lineSplit = array_filter(explode(' ',$template_str));
+        if( count($lineSplit) > 0){
+            $mainLine = $lineSplit[0];
+        }
+        // 2. Extract the content inside [find ...]
+        if (preg_match('/\[find\s+([^\]]+)\]/', $template_str, $outerMatches)) {
+            $attributesString = $outerMatches[1];
+            // 3. Extract key="value" pairs
+            // Added \. to the character class to support keys like .id
+            $pattern = '/([\.\w-]+)="([^"]*)"/';
+            //OLD: $pattern = '/([\w-]+)="([^"]*)"/';
+            
+            if (preg_match_all($pattern, $attributesString, $innerMatches)) {
+                // Combine the keys ($innerMatches[1]) and values ($innerMatches[2])
+                $fieldValues = array_combine($innerMatches[1], $innerMatches[2]);
+            }
+        }else{
+            return $template_str;
+        }
+        
+        if($outerMatches && count($outerMatches)<=0){
+            return $template_str;
+        }
+        //return $outerMatches[0];
+        $replaceValue = '.id="**find-return-value**"';
+        if(is_callable($fn)){
+
+            //REPLACE the last
+            $printPattern = '#/([^/\s]+)(/?)(?=\s|$)#';
+            $printLine = preg_replace($printPattern, '/print$2', $mainLine, 1);
+            $replaceValue = $fn($printLine, $fieldValues);
+        }
+        
+        $template_str = preg_replace('/' . preg_quote($outerMatches[0], '/') . '/', $replaceValue, $template_str, 1);
+        //$template_str = str_replace( $outerMatches[0], $replaceValue, $template_str);
+        //Recursive and find until everything is fixed.
+        return static::find( $template_str, $fn);
+    }
+
+    static function multi_find($template_str, callable $fn = null){
+        $lines = explode("\n", $template_str);
+        $result = [];
+        foreach($lines as $line){
+            if(trim($line)){
+                $result[] = static::find($line, $fn);
+            }
+        }
+        return implode("\n", $result);
     }
 }

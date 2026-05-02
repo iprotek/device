@@ -14,6 +14,8 @@ use MikrotikAPI\MikrotikAPI;
 //use RouterOS\Query as MikroTikQuery;
 use iProtek\Device\Helpers\MClientHelper as MikroTikClient;
 use iProtek\Device\Helpers\MQueryHelper as MikroTikQuery;
+use iProtek\Device\Helpers\DeviceHelper;
+use iProtek\Device\Helpers\DeviceVariableHelper;
 
 class MikrotikHelper
 {  
@@ -103,8 +105,33 @@ class MikrotikHelper
 
     }
 
-    public static function convertCliToApiQuery($cliCommand)
+    public static function find_command($client, $baseLine, $keyValues){
+        $query = new MikroTikQuery($baseLine);
+        $query->operations('&');
+        foreach ($keyValues as $key => $value) {
+            $query->where($key, $value);
+        }
+        
+        $response = $client->query($query)->read();
+        
+        if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
+            return '.id="E1:*0**"';
+        }
+    
+        if(is_array($response) && count($response) > 0){
+            return ".id=\"".$response[0][".id"].'"';
+        }
+        return '.id="E2:*0**"';
+    }
+
+    public static function convertCliToApiQuery($cliCommand, callable $fn=null)
     {
+
+        //CHECK FIND
+        $cliCommand = DeviceVariableHelper::find($cliCommand, $fn);
+
+
+
         // Split the command into parts
         $parts = explode(' ', trim($cliCommand));
 
@@ -148,7 +175,8 @@ class MikrotikHelper
         //return $query;
         return[
             "query"=>$query,
-            "base_command"=>$baseCommand
+            "base_command"=>$baseCommand,
+            "full_command"=>$cliCommand
         ];
     }
 
@@ -160,7 +188,9 @@ class MikrotikHelper
         //SAMPLE COMMAND: /ppp/active/print where name="specific-username"
         try{ 
  
-            $query = static::convertCliToApiQuery($command); 
+            $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
+                return static::find_command($client, $baseLine, $keyValues);
+            }); 
             $response = $client->query($query['query'])->read();
             
             if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
@@ -187,7 +217,9 @@ class MikrotikHelper
 
             //$query = new MikroTikQuery( $command );
             //Log::error($command);
-            $query = static::convertCliToApiQuery($command);
+            $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
+                return static::find_command($client, $baseLine, $keyValues);
+            });
             $response =  $client->query($query['query'])->read();
             //Log::error($response);
 
@@ -251,30 +283,14 @@ class MikrotikHelper
         ];
     }
 
-    public static function register( Request $request = null, DeviceTemplateTrigger $deviceTrigger, $command, $target_name, $target_id){
+    public static function register( Request $request = null, DeviceTemplateTrigger $deviceTrigger, $template, $target_name, $target_id){
 
         //VALIDATIONS
         $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
         $deviceAccess = $deviceTrigger->device_access;
-        if(!$deviceAccess){
-            return ["status"=>0, "message"=>"No Device found on trigger."];
-        }
-
-        if($deviceAccess->enable_register){
-            return ["status"=>0, "message"=>"Register Command not enabled."];
-        }
-
-        //SPLIT COMMAND INTO 2
-        $lines = array_filter( explode("\n", $command ) );
-
-
-        $checkRegCommand = $lines[0] ?? "";
-        $regCommand = $lines[1] ?? "";
-
-
-        if($deviceAccess->type != 'mikrotik'){
-            return [ "status"=>0, "message"=>"Invalid Device"];
-        }
+        if(!$deviceAccess) return ["status"=>0, "message"=>"No Device found on trigger."];
+        if($deviceAccess->enable_register)  return ["status"=>0, "message"=>"Register Command not enabled."];
+        if($deviceAccess->type != 'mikrotik') return [ "status"=>0, "message"=>"Invalid Device"];
 
         //CHECK ACCOUNT USING USERNAME
         $credential = [
@@ -284,14 +300,30 @@ class MikrotikHelper
             "port"=>$deviceAccess->port,
             "is_ssl"=>$deviceAccess->is_ssl
         ];
-
         //LOGIN VALIDATION
         $checkLogin = static::credential_login_check($credential, true);
         if($checkLogin["status"] !== 1 ){
             return $checkLogin;
         }
+        $client = $checkLogin["client"];        
+        $template = $deviceTrigger->register_command_template;
+        //CONVERT TEMPLATE TRANSLATION
+        $translate = DeviceHelper::translate_template($template, $target_name, $target_id);
+        if(is_array($translate) && $translate["status"] == 0){
+            static::log( $target_name, $target_id, 0, "--", "Translate error: ".$translate["message"], "Translate error: ".$translate["message"], 2, $deviceTrigger->id);
+            return $translate;
+        }
+        if( !is_string( $translate)){
+            static::log( $target_name, $target_id, 0, "--", "Translate error: Invalid Command", "Translate error: Invalid Command", 2, $deviceTrigger->id);
+            return ["status"=>0, "message"=>"Invalid Command "];
+        }
 
-        $client = $checkLogin["client"];
+
+        //SPLIT COMMAND INTO 2
+        $lines = array_filter( explode("\n", $translate ) );
+        $checkRegCommand = $lines[0] ?? "";
+        $regCommand = $lines[1] ?? "";
+
 
         //CHECK EXISTS?
 
@@ -400,7 +432,9 @@ class MikrotikHelper
             $command_lines = $result['command_lines'];
 
             foreach($command_lines as $command){
-                $query = static::convertCliToApiQuery($command);
+                $query = static::convertCliToApiQuery($command,function($baseLine, $keyValues)use($client){
+                    return static::find_command($client, $baseLine, $keyValues);
+                });
                 $response =  $client->query($query['query'])->read();
                 //Error popup
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -424,7 +458,6 @@ class MikrotikHelper
         }
 
     }
-
 
     public static function active( DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
 
@@ -450,7 +483,9 @@ class MikrotikHelper
 
             foreach($command_lines as $command){
 
-                $query = static::convertCliToApiQuery($command);
+                $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
+                    return static::find_command($client, $baseLine, $keyValues);
+                });
                 
                 $base_command = $query['base_command']; 
 
@@ -518,7 +553,9 @@ class MikrotikHelper
 
             foreach($command_lines as $command){
  
-                $query = static::convertCliToApiQuery($command);
+                $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
+                    return static::find_command($client, $baseLine, $keyValues);
+                });
                 $base_command = $query['base_command']; 
 
                 if($base_command == '/ppp/active/remove' && count($activeUsers)<= 0){
@@ -591,7 +628,9 @@ class MikrotikHelper
 
             foreach($command_lines as $command){
 
-                $query = static::convertCliToApiQuery($command);  
+                $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
+                    return static::find_command($client, $baseLine, $keyValues);
+                });  
                 $response =  $client->query($query['query'])->read();
                 
                 //Error popup
