@@ -20,7 +20,7 @@ class DeviceVariableHelper
 
         // Define the regular expression pattern
         //$pattern = '/{{\s*(phb-event-start)\s*(?:format\s*=\s*"([^"]*)"\s*)?(?:timezone\s*=\s*"([^"]*)"\s*)?(?:offset_mins\s*=\s*([^"]*)\s*)*}}/';
-        $pattern = '/\[\s*(account)\s*(?:field\s*=\s*"([^"]*)"\s*)?(?:data-json\s*=\s*"([^"]*)"\s*)?(?:data-model\s*=\s*"([^"]*)"\s*)*\]/';
+        $pattern = '/\[\s*(account)\s*(?:field\s*=\s*"([^"]*)"\s*)?(?:data-json\s*=\s*"([^"]*)"\s*)?(?:data-model\s*=\s*"([^"]*)"\s*)?(?:connector\s*=\s*"([^"]*)"\s*)*\]/';
         //$pattern = '/\[account_name format="[^"]+"\]/';
         preg_match($pattern, $sample, $matches);
         $matching_string = isset($matches[0]) ? $matches[0] : "";
@@ -28,7 +28,7 @@ class DeviceVariableHelper
             $field = isset( $matches[2]) ?  $matches[2]:null;
             $data_json = isset( $matches[3]) ?  $matches[3]:null;
             $data_model = isset( $matches[4]) ?  $matches[4]: null;
-
+            $connector = isset( $matches[5]) ?  $matches[5]: null;
             //$str = static::event_time_setup($event->utc_start, $format, $timezone, $offset_mins);
             
             $str = "";
@@ -50,6 +50,9 @@ class DeviceVariableHelper
                 }
 
             } 
+            if($connector && trim($connector)){
+                $str = str_replace(' ', $connector, $str);
+            }
             $result = str_replace($matching_string, $str, $sample);
 
             //recheck if still exists.

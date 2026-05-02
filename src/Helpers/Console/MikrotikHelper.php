@@ -131,8 +131,10 @@ class MikrotikHelper
                 $value = trim($value, '"'); // Remove quotes if present
                 if($is_where)
                     $query->where($key, $value);
-                else
+                else{
+                    //$query->add("=$key=\"$value\"");
                     $query->equal($key, $value);
+                }
             }
             else if(strpos($part, '~') !== false){
                 preg_match('/^([a-zA-Z0-9\-]+)([~!=]+)"(.+)"$/', $part, $matches);
@@ -407,7 +409,7 @@ class MikrotikHelper
             }
 
             if($request){
-                PayModelHelper::update($deviceAccount, $request, [ ])->save();
+                PayModelHelper::update($deviceAccount, $request, [ ]);
             } else{
                 $deviceAccount->save();
             }
