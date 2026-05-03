@@ -491,6 +491,7 @@ class MikrotikHelper
 
                 $response =  $client->query($query['query'])->read();
 
+                /*
                 if($base_command == '/ppp/active/print'){ 
                     $activeUsers = $response;
                     foreach($activeUsers as $activeUser){
@@ -503,6 +504,7 @@ class MikrotikHelper
                         }
                     }
                 }
+                */
                 
                 //Error pop up
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -563,9 +565,9 @@ class MikrotikHelper
                 }
                 $response =  $client->query($query['query'])->read();
                 
-                if($base_command == '/ppp/active/print'){ 
-                    $activeUsers = $response;
-                }
+                //if($base_command == '/ppp/active/print'){ 
+                //    $activeUsers = $response;
+                //}
  
                 //Error Popup
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -575,6 +577,7 @@ class MikrotikHelper
 
 
             //REMOVAL OF SELECTED ACTIVE USERS
+            /*
             foreach($activeUsers as $activeUser){
                 $query = new MikroTikQuery('/ppp/active/remove');
                 $query->equal('.id', $activeUser['.id']);
@@ -583,7 +586,7 @@ class MikrotikHelper
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
                     return["status"=>0,"message"=>$response['after']['message']];
                 }
-            }
+            }*/
 
             if($request){
                 PayModelHelper::update($deviceAccount, $request, [
