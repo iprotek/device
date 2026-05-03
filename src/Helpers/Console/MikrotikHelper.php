@@ -598,7 +598,7 @@ class MikrotikHelper
             }
 
 
-            return ["status"=>1, "message"=>  count($activeUsers)>0 ? "Set Inactive Completed." : "User already been inactive."];
+            return ["status"=>1, "message"=>  "Done Inactive."];
 
         }catch(\Exception $ex){
             
