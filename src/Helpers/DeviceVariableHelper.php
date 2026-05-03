@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use iProtek\Device\Models\DeviceAccount;
 use iProtek\Device\Models\DeviceAccess;
+use Illuminate\Support\Facades\File;
 
 class DeviceVariableHelper
 { 
@@ -149,5 +150,25 @@ class DeviceVariableHelper
             }
         }
         return implode("\n", $result);
+    }
+
+    static function getModelByTable($tableName)
+    {
+        $modelsPath = app_path('Models');
+        $files = File::allFiles($modelsPath);
+
+        foreach ($files as $file) {
+            $class = 'App\\Models\\' . $file->getFilenameWithoutExtension();
+
+            if (class_exists($class)) {
+                $model = new $class;
+
+                if ($model->getTable() === $tableName) {
+                    return $class;
+                }
+            }
+        }
+
+        return null;
     }
 }
