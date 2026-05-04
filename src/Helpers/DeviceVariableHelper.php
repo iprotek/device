@@ -21,21 +21,47 @@ class DeviceVariableHelper
 
         // Define the regular expression pattern
         //$pattern = '/{{\s*(phb-event-start)\s*(?:format\s*=\s*"([^"]*)"\s*)?(?:timezone\s*=\s*"([^"]*)"\s*)?(?:offset_mins\s*=\s*([^"]*)\s*)*}}/';
-        $pattern = '/\[\s*(account)\s*(?:field\s*=\s*"([^"]*)"\s*)?(?:data-json\s*=\s*"([^"]*)"\s*)?(?:data-model\s*=\s*"([^"]*)"\s*)?(?:connector\s*=\s*"([^"]*)"\s*)*\]/';
+        //OLD::$pattern = '/\[\s*(account)\s*(?:field\s*=\s*"([^"]*)"\s*)?(?:data-json\s*=\s*"([^"]*)"\s*)?(?:data-model\s*=\s*"([^"]*)"\s*)?(?:connector\s*=\s*"([^"]*)"\s*)?(?:instance\s*=\s*"([^"]*)"\s*)?(?:order\s*=\s*"([^"]*)"\s*)*\]/';
         //$pattern = '/\[account_name format="[^"]+"\]/';
-        preg_match($pattern, $sample, $matches);
+        //OLD:: preg_match($pattern, $sample, $matches);
+        preg_match('/\[account\s+([^\]]+)\]/', $sample, $matches);
         $matching_string = isset($matches[0]) ? $matches[0] : "";
+
         if($matching_string){
-            $field = isset( $matches[2]) ?  $matches[2]:null;
-            $data_json = isset( $matches[3]) ?  $matches[3]:null;
-            $data_model = isset( $matches[4]) ?  $matches[4]: null;
-            $connector = isset( $matches[5]) ?  $matches[5]: null;
-            //$str = static::event_time_setup($event->utc_start, $format, $timezone, $offset_mins);
+        
+            $attributesString = $matches[1];
+            $pattern = '/([\.\w-]+)="([^"]*)"/';
+            if (preg_match_all($pattern, $attributesString, $innerMatches)) {
+                $fieldValues = array_combine($innerMatches[1], $innerMatches[2]);
+            }
+
+            $field = null;
+            $data_json = null;
+            $data_model = null;
+            $connector = null;
+            $instance = null;
+            $order = null;
+            $order_by = null;
+
+            foreach($fieldValues as $key=>$value){
+                if(!$key || !trim($key)) continue;
+                $key = strtolower(trim($key));
+                if($key == 'field') $field = $value;
+                else if($key == 'data-json') $data_json = $value;
+                else if($key == 'data-model') $data_model = $value;
+                else if($key == 'connector') $connector = $value;
+                else if($key == 'instance') $instance = $value;
+                else if($key == 'order') $order = $value;
+                else if($key == 'order-by') $order_by = $value;
+            }
             
             $str = "";
             if( $field ){
 
-                if($data_model){
+                if($instance){
+                    $str = static::getDataByInstance($target_name, $traget_id, $instance, $field, $order, $order_by);
+                }
+                else if($data_model){
                     $str = \DB::select( " SELECT  fnGetDataTextValue(?,?,?,?) as val",[ $target_name, $traget_id, $data_model, $field ] )[0]->val;
                 }
                 else if($data_json){ 
@@ -171,4 +197,45 @@ class DeviceVariableHelper
 
         return null;
     }
+
+    static function getDataByInstance($target_name, $target_id, $instance, $field, $order=0, $orderBy=null){
+        $model = static::getModelByTable($target_name);
+        if(!$model) return '';
+
+        $model = new $model;
+        
+        $selected = $model->find( $target_id );
+        if(!$selected) return '';
+
+        if (!method_exists($selected, $instance)) {
+            return '';
+        }
+        if($orderBy){
+            $selected->load([
+                $instance => function ($query)use($orderBy) {
+                    $query->orderByRaw("$orderBy ASC");
+                }
+            ]);
+        }
+        else
+            $selected->load($instance);
+        
+        if(is_array($model->{$instance})){
+            if(count($model->{$instance}) <= 0 ) return '';
+
+            if(lower(trim($order) == 'last')){
+                return collect($model->{$instance})->last()->{$field} ?? "";
+            }
+            else if(lower(trim($order) == 'first')){
+                return ($model->{$instance})[$order]->{$field} ?? "";
+            }
+            else if(is_numeric($order)){
+                return ($model->{$instance})[((int)$order)-1]->{$field} ?? "";
+            }
+            return '';
+        }
+        return $selected->{$instance}->{$field} ?? '';
+
+    }
+
 }
