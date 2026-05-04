@@ -651,7 +651,7 @@ class MikrotikHelper
                 $deviceAccount->save();
             }
             */
-            if(count($error_count)>0){
+            if(count($errors)>0){
                 return ["status"=>1, "message"=>"Removed with errors. (".implode(',', $errors).")"];
             }
 
