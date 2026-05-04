@@ -643,7 +643,7 @@ class MikrotikHelper
                     $errors[] = $response['after']['message'];
                 }
             }
-            PayModelHelper::remove($deviceAccount, $request);
+            PayModelHelper::delete($deviceAccount, $request);
             /*
             if($request){
                 PayModelHelper::update($deviceAccount, $request, []);
