@@ -621,7 +621,7 @@ class MikrotikHelper
         }
 
         $client = $result['client'];
-
+        $errors = [];
         try{
 
             
@@ -639,18 +639,23 @@ class MikrotikHelper
                 //Error popup
                 
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
-                    return["status"=>0,"message"=>$response['after']['message']];
+                    //return["status"=>0,"message"=>$response['after']['message']];
+                    $errors[] = $response['after']['message'];
                 }
             }
-
+            PayModelHelper::remove($deviceAccount, $request);
+            /*
             if($request){
                 PayModelHelper::update($deviceAccount, $request, []);
             }else{
                 $deviceAccount->save();
             }
+            */
+            if(count($error_count)>0){
+                return ["status"=>1, "message"=>"Removed with errors. (".implode(',', $errors).")"];
+            }
 
-
-            return ["status"=>1, "message"=>"Set Inactive Completed."];
+            return ["status"=>1, "message"=>"Removed successfully."];
 
         }catch(\Exception $ex){
             
