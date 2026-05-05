@@ -327,6 +327,11 @@ class MikrotikHelper
 
         //CHECK EXISTS?
 
+        //CHECK IF FIRST COMMAND IS ADD
+        $getIds = [];
+
+
+
         //REGISTER IF NOT EXISTS
         $checkRegResult = static::checkAccount($client, $checkRegCommand);
         if($checkRegResult["status"] != 1){
@@ -643,7 +648,10 @@ class MikrotikHelper
                     $errors[] = $response['after']['message'];
                 }
             }
-            PayModelHelper::delete($deviceAccount, $request);
+            if($request)
+                PayModelHelper::delete($deviceAccount, $request);
+            else 
+                $deviceAccount->delete();
             /*
             if($request){
                 PayModelHelper::update($deviceAccount, $request, []);

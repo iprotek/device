@@ -394,4 +394,21 @@ class DeviceAccessController extends _CommonController
         $columns = \DB::getSchemaBuilder()->getColumns($table);
         return $columns;
     }
+
+    public function mikrotik_check_script(Request $request){
+        $this->validate($request, ["prompt_or_script"=>"required"]);
+        $lines = [];
+        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::validateScript($request->prompt_or_script);
+    }
+
+    public function mikrotik_run_script(Request $request){
+        $this->validate($request, ["prompt_or_script"=>"required", "device_access_id"=>"required|integer", "added_ids"=>"nullable", "ini_context"=>"nullable|json"]);
+        //return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::validateScript($request->prompt_or_script);
+
+        //GET MIKROTIKHELPER FROM ROUTER OS
+        $added_ids =  explode(',', $request->added_ids ?? '');
+        $ini_context = $request->ini_context ?? "{}";
+
+        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::executeScript($request->prompt_or_script, true, $added_ids, $ini_context);
+    }
 }

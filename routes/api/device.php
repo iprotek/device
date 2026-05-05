@@ -72,6 +72,18 @@ Route::prefix('/devices')->name('.devices')->group(function(){
         ->defaults("_is_allow", false)
         ->name('.target-table-info');
 
+    Route::post('mikrotik-check-script', [DeviceAccessController::class, 'mikrotik_check_script'])
+        ->defaults("_description", "Check the script of mikrotik")
+        ->defaults("_is_visible", false)
+        ->defaults("_is_allow", true)
+        ->name('.mikrotk-check-script');
+
+    Route::post('mikrotik-run-script', [DeviceAccessController::class, 'mikrotik_run_script'])
+        ->defaults("_description", "Run the script of mikrotik")
+        ->defaults("_is_visible", false)
+        ->defaults("_is_allow", true)
+        ->name('.mikrotk-runn-script');
+
     Route::prefix('accounts')->name('.accounts')->group(function(){
 
         //LIST
