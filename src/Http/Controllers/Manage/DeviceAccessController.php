@@ -409,6 +409,6 @@ class DeviceAccessController extends _CommonController
         $added_ids =  explode(',', $request->added_ids ?? '');
         $ini_context = $request->ini_context ?? "{}";
 
-        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::executeScript($request->prompt_or_script, true, $added_ids, $ini_context);
+        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::executeScript($request->prompt_or_script, $request->device_access_id, true, $added_ids, $ini_context);
     }
 }

@@ -6,15 +6,38 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use iProtek\Device\Helpers\MClientHelper as MikroTikClient;
 use iProtek\Device\Helpers\MQueryHelper as MikroTikQuery;
+use iProtek\Device\Helpers\Console\MikrotikHelper;
+use iProtek\Device\Models\DeviceAccess;
 
 class MikrotikScriptHelper
 {  
     public static $is_print_only = true;
-    public static function executeScript($script, $is_print_only = true, $added_ids=[], $ini_context="[]")
+    public static function executeScript($script, $device_access_id, $is_print_only = true, $added_ids=[], $ini_context="[]")
     {
         $client = null;
+        /////////// DEVICE CHECK /////////////////
+        
+        $device_access = DeviceAccess::where('type','mikrotik')->find($device_access_id);
+        if(!$device_access){
+            return ["status"=>0, "message"=>"Device Not found"];
+        }
+        $credInfo = [
+            "host"=>$device_access->host,
+            "user"=>$device_access->user,
+            "password"=>$device_access->password,
+            "port"=>(int)$device_access->port,
+            "is_ssl"=>$device_access->is_ssl
+        ];
 
+        $result = MikrotikHelper::credential_login_check($credInfo, true);
+        if($result['status'] != 1){
+            return $result;
+        } 
+            
+        //return $result;
+        ////////////////// START ///////////
 
+        $client = $result['client'];/* */
         $lines = [];
         static::$is_print_only = $is_print_only;
         $result = static::validateScript($script, $lines);
@@ -51,6 +74,7 @@ class MikrotikScriptHelper
 
             // IF BLOCK
             if (preg_match('/^IF\[(.+)\]$/', $line, $match)) {
+
                 $condition = $match[1];
                 $i++;
 
@@ -58,63 +82,86 @@ class MikrotikScriptHelper
                 $falseBlock = [];
                 $current = &$trueBlock;
 
-                // COLLECT BLOCK
-                while ($i < count($lines) && $lines[$i] !== 'END') {
-                    if ($lines[$i] === 'ELSE') {
+                $depth = 1; // 🔥 track nesting
+
+                while ($i < count($lines) && $depth > 0) {
+
+                    if (preg_match('/^IF\[/', $lines[$i])) {
+                        $depth++;
+                    }
+
+                    if ($lines[$i] === 'END') {
+                        $depth--;
+
+                        if ($depth === 0) {
+                            break; // correct END for this IF
+                        }
+                    }
+
+                    // ELSE only applies at depth 1
+                    if ($lines[$i] === 'ELSE' && $depth === 1) {
                         $current = &$falseBlock;
                         $i++;
                         continue;
                     }
+
                     $current[] = $lines[$i];
                     $i++;
                 }
 
-                // EVALUATE CONDITION
+                // skip END
+                $i++;
+
+                // EVALUATE
                 $evaluate = static::evaluateCondition($condition, $context);
-                if($evaluate["status"] != 1){
+
+                if ($evaluate["status"] != 1) {
                     $evaluate["line"] = $i;
                     return $evaluate;
                 }
 
-                if ( $evaluate["result"] ) {
-                    $subIndex = 0;
+                $subIndex = 0;
+
+                if ($evaluate["result"]) {
                     $result = static::runBlock($trueBlock, $subIndex, $context, $tables, $client);
-                    if($result["status"] != 1){
-                        $result["line"] = $i;
-                        return $result;
-                    }
-                } else { 
-                    $subIndex = 0;
+                } else {
                     $result = static::runBlock($falseBlock, $subIndex, $context, $tables, $client);
-                    if($result["status"] != 1){
-                        $result["line"] = $i;
-                        return $result;
-                    }
                 }
 
-            }
-            // COMMAND
-            elseif (str_starts_with($line, '/')) {
-                $result = static::executeCommand($line, $context, $tables, $client);
-                if($result["status"] != 1){
+                if ($result["status"] != 1) {
                     $result["line"] = $i;
                     return $result;
                 }
 
+                continue;
             }
-            // END
+
+            // COMMAND
+            elseif (str_starts_with($line, '/')) {
+                $result = static::executeCommand($line, $context, $tables, $client);
+
+                if ($result["status"] != 1) {
+                    $result["line"] = $i;
+                    return $result;
+                }
+            }
+
+            // END (only for parent caller)
             elseif ($line === 'END') {
-                return ["status"=>1, "message"=>"Completed"];
+                return ["status" => 1, "message" => "Completed"];
             }
 
             $i++;
         }
-        return ["status"=>1, "message"=>"Completed"];
+
+        return ["status" => 1, "message" => "Completed"];
     }
     static function isValidExpression(string $expr): bool
     {
+        $str = '(?:"([^"\\\\]|\\\\.)*"|\'([^\'\\\\]|\\\\.)*\')';
+
         // 1. Allow single number or quoted string
-        if (preg_match('/^\s*(\d+|"([^"\\\\]|\\\\.)*")\s*$/', $expr)) {
+        if (preg_match('/^\s*(\d+|' . $str . ')\s*$/', $expr)) {
             return true;
         }
 
@@ -125,13 +172,13 @@ class MikrotikScriptHelper
                 (?:
                     \d+
                     |
-                    "([^"\\\\]|\\\\.)*"
+                    ' . $str . '
                 )
                 \s*(<=|>=|==|!=|<|>)\s*
                 (?:
                     \d+
                     |
-                    "([^"\\\\]|\\\\.)*"
+                    ' . $str . '
                 )
             )
             (\s*(&&|\|\|)\s*
@@ -139,13 +186,13 @@ class MikrotikScriptHelper
                     (?:
                         \d+
                         |
-                        "([^"\\\\]|\\\\.)*"
+                        ' . $str . '
                     )
                     \s*(<=|>=|==|!=|<|>)\s*
                     (?:
                         \d+
                         |
-                        "([^"\\\\]|\\\\.)*"
+                        ' . $str . '
                     )
                 )
             )*
@@ -274,30 +321,33 @@ class MikrotikScriptHelper
             return ["status"=>0, "message"=>"Something goes wrong"];
         } 
 
-        
 
 
+        $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
+            return MikrotikHelper::find_command($client, $baseLine, $keyValues);
+        });
+
+        $response =  $client->query($query['query'])->read();
+        $status = 1;
+        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+            
             $data = [
-                [
-                    "test" => 1,
-                    "test2" => 2
-                ],
-                [
-                    "test2" => 4,
-                    "test" => 2
-                ],
-                [
-                    "test3"=>5
-                ]
+                "message"=>$response['after']['message'],
+                "line_raw"=>$line,
+                "line_context"=>$line_value
             ];
+        }
+        
+        $data = $response;
 
         $tables[] = [ 
-            "status"=>1,
+            "status"=>$status,
             "data"=> static::convertDataToTable($data) 
         ];
+
         return [
-            "status"=>1,
-            "message"=>"Success"
+            "status"=>$status,
+            "message"=> $status? "Success" : "Has an error."
         ];
     }
 
@@ -311,14 +361,16 @@ class MikrotikScriptHelper
 
         // 2. Build final table
         $table = [];
-        $table[] = $headers; // first row = headers
+        if(count($headers) > 0 ){
+            $table[] = $headers; // first row = headers
 
-        foreach ($data as $row) {
-            $line = [];
-            foreach ($headers as $header) {
-                $line[] = $row[$header] ?? null; // keep order consistent
+            foreach ($data as $row) {
+                $line = [];
+                foreach ($headers as $header) {
+                    $line[] = $row[$header] ?? null; // keep order consistent
+                }
+                $table[] = $line;
             }
-            $table[] = $line;
         }
         return $table;
     }
@@ -404,8 +456,10 @@ class MikrotikScriptHelper
                 if (is_array($value)) {
                     return 0;
                 }
+                if(is_numeric($value))
+                    return $value;
 
-                return $value;
+                return "'$value'";
             },
             $condition
         );
