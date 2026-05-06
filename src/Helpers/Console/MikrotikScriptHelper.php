@@ -140,7 +140,8 @@ class MikrotikScriptHelper
                 continue;
             }
             else if(preg_match('/SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"((?:\\\\.|[^"])*)"|([^\s]*))?/i', $line, $matches)){
-                $result = DeviceVariableHelper::getVariable($line);
+                $translate_line = static::lineContext($line, $context);
+                $result = DeviceVariableHelper::getVariable($translate_line["result"]);
                 if($result){
                     $context[$result["name"]] = $result["value"];
                 }
