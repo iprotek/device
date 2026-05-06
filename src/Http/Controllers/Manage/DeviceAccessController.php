@@ -9,6 +9,7 @@ use iProtek\Core\Helpers\PayModelHelper;
 use Illuminate\Support\Facades\Schema;
 
 use iProtek\Device\Models\DeviceAccess;
+use iProtek\Device\Helpers\DeviceHelper;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Helpers\Console\SshHelper;
 use iProtek\Device\Helpers\Console\TelnetHelper;
@@ -402,13 +403,52 @@ class DeviceAccessController extends _CommonController
     }
 
     public function mikrotik_run_script(Request $request){
-        $this->validate($request, ["prompt_or_script"=>"required", "device_access_id"=>"required|integer", "added_ids"=>"nullable", "ini_context"=>"nullable|json"]);
+        $this->validate($request, [
+            "prompt_or_script"=>"required", 
+            "device_access_id"=>"required|integer", 
+            "added_ids"=>"nullable", 
+            "ini_context"=>"nullable|json",
+            "target_name"=>"required",
+            "target_id"=>"nullable"
+        ]);
         //return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::validateScript($request->prompt_or_script);
 
+        //CHECK IF HAS PATTERN of account before requiring target_id
+
+
+
         //GET MIKROTIKHELPER FROM ROUTER OS
-        $added_ids =  explode(',', $request->added_ids ?? '');
+        $added_ids =  array_values( array_filter( explode(',', $request->added_ids ?? ''),function($item){
+            return trim("$item") !== '';
+        } ));
         $ini_context = $request->ini_context ?? "{}";
 
-        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::executeScript($request->prompt_or_script, $request->device_access_id, true, $added_ids, $ini_context);
+        $prompt_or_script = $request->prompt_or_script;
+        if($request->target_id && (int)$request->target_id > 0){
+            $prompt_or_script =  DeviceHelper::translate_template($prompt_or_script, $request->target_name, $request->target_id);
+        }
+
+
+
+        return \iProtek\Device\Helpers\Console\MikrotikScriptHelper::executeScript($prompt_or_script, $request->device_access_id, true, $added_ids, $ini_context);
+    }
+
+    public function mikrotik_preview_script(Request $request){
+
+        $this->validate($request, [
+            "prompt_or_script"=>"required",
+            "target_name"=>"required",
+            "target_id"=>"required"
+        ]);
+
+        $template = $request->prompt_or_script ?? "";
+        $target_name = $request->target_name;
+        $target_id = $request->target_id;
+
+        
+        $translate = DeviceHelper::translate_template($template, $target_name, $target_id);
+
+        return ["status"=>1, "messsage"=>"Successfully retrieved", "result"=>$translate];
+
     }
 }

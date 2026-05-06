@@ -82,7 +82,13 @@ Route::prefix('/devices')->name('.devices')->group(function(){
         ->defaults("_description", "Run the script of mikrotik")
         ->defaults("_is_visible", false)
         ->defaults("_is_allow", true)
-        ->name('.mikrotk-runn-script');
+        ->name('.mikrotk-run-script');
+
+    Route::post('mikrotik-preview-script', [DeviceAccessController::class, 'mikrotik_preview_script'])
+        ->defaults("_description", "Preview the script of mikrotik")
+        ->defaults("_is_visible", false)
+        ->defaults("_is_allow", true)
+        ->name('.mikrotk-preview-script');
 
     Route::prefix('accounts')->name('.accounts')->group(function(){
 

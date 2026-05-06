@@ -138,6 +138,7 @@ class MikrotikScriptHelper
 
             // COMMAND
             elseif (str_starts_with($line, '/')) {
+                //return ["status"=>0, "message"=>"Failed"];
                 $result = static::executeCommand($line, $context, $tables, $client);
 
                 if ($result["status"] != 1) {
@@ -208,7 +209,7 @@ class MikrotikScriptHelper
         // Optional: strict validation (VERY IMPORTANT)
         if (!static::isValidExpression($expr)) {
             //throw new \Exception("Invalid condition: $condition");
-            Log::error("Invalid condition: $condition" );
+            //Log::error("Invalid condition: $condition" );
             return ["status"=>0, "message"=>"Invalid condition:<b> $condition </b> <br/> EVALUATION: $expr" ];
         }
         return[
@@ -218,15 +219,26 @@ class MikrotikScriptHelper
     }
 
     static function getSetRead($line, &$context, $client ){
-        return ["status"=>1, "message"=>"Success"];
+        //return ["status"=>1, "message"=>"Success"];
+        $line_result = static::lineContext($line, $context);
+        $line_value =  $line_result["result"];
+
+        if($line_result["status"] != 1){
+            return [
+                     "status"=>0,
+                    "message"=>"Error $line converted $line_value"
+                ];
+        } 
+
+
         // Extract command
-        preg_match('/^(\/[^\s]+)/', $line, $cmdMatch);
-        $command = $cmdMatch[1] ?? null;
+        //preg_match('/^(\/[^\s]+)/', $line, $cmdMatch);
+        //$command = $cmdMatch[1] ?? null;
 
         
         // Extract --get and --set
-        preg_match('/--get="([^"]+)"/', $line, $getMatch);
-        preg_match('/--set="([^"]+)"/', $line, $setMatch);
+        preg_match('/--get=?\"([^"]+)\"/', $line, $getMatch);
+        preg_match('/--set=?\"([^"]+)\"/', $line, $setMatch);
 
         $getFields = isset($getMatch[1])
             ? array_map('trim', explode(',', $getMatch[1]))
@@ -234,30 +246,51 @@ class MikrotikScriptHelper
 
         $setVars = isset($setMatch[1])
             ? array_map('trim', explode(',', $setMatch[1]))
-            : [];
+            : []; 
+        //return ["status"=>0, "message"=>"GG".implode(',', $getFields)];
+        $line_clean = str_replace($getMatch[0], '',  $line_value);
+        $line_clean = str_replace($setMatch[0], '',  $line_clean);
+
+        //return ["status"=>0, "message"=>implode(',',$getFields)];
+        if ( count($getFields) <=0 || count($getFields) !== count($setVars)) {
+            return ["status"=>0, "message"=>"Please make get and set same parameter count at <b>".$line."</b>"];
+        }
 
         // Execute RouterOS query
-        $result = $client->query($command)->read();
-        $row = $result[0] ?? [];
+        
+        //return ["status"=>0, "message"=>"Error: $line converted ".$line_value." ".implode(',',$setMatch)];
+        
+        $query = MikrotikHelper::convertCliToApiQuery($line_clean, function($baseLine, $keyValues)use($client){
+            return MikrotikHelper::find_command($client, $baseLine, $keyValues);
+        });
+
+        $response =  $client->query($query['query'])->read();
+        $status = 1;
+        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+            
+            return [
+                "status"=>0,
+                "message"=>$response['after']['message'],
+                "line_raw"=>$line,
+                "line_context"=>$line_value
+            ];
+        }
+
+        $row = $response[0] ?? [];
 
         // Mapping logic
         if (!empty($getFields) && !empty($setVars)) {
-
-            if (count($getFields) !== count($setVars)) {
-                //throw new Exception("Mismatch between GET and SET fields");
-                Log::error("Mismatch between GET and SET fields at $line" );
-                return ["status"=>0, "message"=>"Mismatch between GET and SET fields at $line"];
-            }
 
             foreach ($getFields as $index => $field) {
                 $targetVar = $setVars[$index];
 
                 // MikroTik uses '.id' not 'id'
-                $value = $row[$field] ?? $row[".$field"] ?? null;
+                $value = $row[$field] ?? $row[".$field"] ??'';
 
                 $context[$targetVar] = $value;
             }
         }
+        return ["status"=>1, "message"=>"Success"];
 
     }
 
@@ -318,8 +351,8 @@ class MikrotikScriptHelper
                 "message"=>"Error Encountered",
                 "data"=> static::convertDataToTable($data) 
             ];
-            return ["status"=>0, "message"=>"Something goes wrong"];
-        } 
+            return ["status"=>0, "message"=>"Something goes wrong $line => $line_value"];
+        }
 
 
 
@@ -336,9 +369,9 @@ class MikrotikScriptHelper
                 "line_raw"=>$line,
                 "line_context"=>$line_value
             ];
+        }else{
+            $data = $response;
         }
-        
-        $data = $response;
 
         $tables[] = [ 
             "status"=>$status,
@@ -377,18 +410,30 @@ class MikrotikScriptHelper
 
 
     static function executeNoRead($line, &$context, $client){
-        if(static::$is_print_only){
-            return ["status"=>1, "message"=>"Not Executed"];
+        
+        $line_result = static::lineContext($line, $context);
+        $line_value =  $line_result["result"];
+        if($line_result["status"] != 1){
+            return ["status"=>0, "message"=>"Something goes wrong $line => $line_value"];
         }
-        //TODO:: Make execution here..
-        return ["status"=>1, "message"=>"Not Executed"];
 
         //Check if its add
         if(preg_match('#^/\S+/add(\s|$)#', $line)){
-            $context["_added_ids"][] = 1; //replace with actual ids
+            //$context["_added_ids"][] = 1; //replace with actual ids
+            return static::add($line, $line_value, $context, $client);
+        }
+        //Check if its add
+        if(preg_match('#^/\S+/set(\s|$)#', $line)){
+            return static::set($line, $line_value, $client);
+        }
+        //Check if its add
+        if(preg_match('#^/\S+/remove(\s|$)#', $line)){
+            return static::remove($line, $line_value, $client);
         }
 
-        return ["status"=>1, "message"=>"Not Executed"];
+        //IMPLEMENT OTHER COMMAND ASIDE FROM add set and remove
+
+        return ["status"=>0, "message"=>"Command unknown not implement, use ( print, add, set, remove) on $line"];
     }
 
     static function executeCommand($line, &$context, &$tables, $client)
@@ -499,5 +544,88 @@ class MikrotikScriptHelper
         return ["status"=>1, "message"=>"No error in ".count($lines)." line(s)"];
     }
 
+    static function add($line, $line_value, &$context, $client){
+        //GET THE 
+        $setVarName = null;
+        $line_clean = $line_value;
+        preg_match('/--pass-id=?\"([^"]+)\"/', $line_value, $setIdMatch);
+        if(count($setIdMatch) > 1){
+            $setVarName = trim($setIdMatch[1]);
+            $line_clean = str_replace($setIdMatch[0], '',  $line_value);
+        }
+
+        if(static::$is_print_only){
+            if($setVarName){ 
+                if(isset($context[$setVarName]))
+                    return ["status"=>1, "message"=>"Added", "id"=> $context[$setVarName]];
+                return ["status"=>0, "message"=>"The test print <b> $setVarName </b> was not set on $line"];
+            }
+            return ["status"=>1, "message"=>"Warning: Id not passed to any variable."];
+        }
+
+        
+        $query = MikrotikHelper::convertCliToApiQuery($line_clean);
+        
+        $response =  $client->query($query['query'])->read();
+
+        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){   
+            return [
+                "status"=>0,
+                "message"=>"Error ".$response['after']['message']." on $line",
+                "line_raw"=>$line,
+                "line_context"=>$line_value
+            ];
+        }
+        if(!isset($response["ret"])){
+            return ["status"=>0, "message"=>"Unable to retrieve .id from adding on this line: $line"];
+        }
+
+        $context["_added_ids"][] = $response["ret"];
+
+        if($setVarName)
+           $context[$setVarName] = $response["ret"];
+        return ["status"=>1, "message"=>"Successfully Added.", "id"=>$response["ret"] ];
+    }
+
+    static function set($line, $line_value, $client){
+        
+        if(static::$is_print_only){
+            return ["status"=>1, "message"=>"By pass [set] for testing purposes at $line."];
+        }
+    
+        $query = static::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
+            return static::find_command($client, $baseLine, $keyValues);
+        });
+
+        $response =  $client->query($query['query'])->read();
+        //Error popup
+        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+            return ["status"=>0,"message"=>"Error: ".$response['after']['message']]." at line $line";
+        }
+        return [
+            "status"=>1, "message"=>"Successfully Updated"
+        ];
+
+    }
+
+    static function remove($line, $line_value, $client){
+        if(static::$is_print_only){
+            return ["status"=>1, "message"=>"By pass [remove] for testing purposes at $line."];
+        }
+        
+        $query = static::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
+            return static::find_command($client, $baseLine, $keyValues);
+        });
+
+        $response =  $client->query($query['query'])->read();
+        //Error popup
+        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+            return ["status"=>0,"message"=>"Error: ".$response['after']['message']]." at line $line";
+        }
+        return [
+            "status"=>1, "message"=>"Successfully Removed"
+        ];
+
+    }
 
 }
