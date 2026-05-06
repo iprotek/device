@@ -238,4 +238,66 @@ class DeviceVariableHelper
 
     }
 
+    static function stripCommentsOutsideQuotes($line) {
+        $inQuote = false;
+        $result = '';
+        $length = strlen($line);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $line[$i];
+            $next = $i + 1 < $length ? $line[$i + 1] : '';
+
+            // Toggle quote state (ignore escaped quotes)
+            if ($char === '"' && ($i === 0 || $line[$i - 1] !== '\\')) {
+                $inQuote = !$inQuote;
+            }
+
+            // Detect comments only if OUTSIDE quotes
+            if (!$inQuote) {
+                if ($char === '#' || ($char === '/' && $next === '/')) {
+                    break;
+                }
+            }
+
+            $result .= $char;
+        }
+
+        return trim($result);
+    }
+
+    static function getVariable($line) {
+        $line = trim($line);
+
+        // Skip full-line comments
+        if (preg_match('/^\s*(#|\/\/)/', $line)) {
+            return null;
+        }
+
+        $line = static::stripCommentsOutsideQuotes($line);
+
+        // Capture variable name + value /SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"((?:\\\\.|[^"])*)"|(\S+))?/i
+        //if (preg_match('/SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"((?:\\\\.|[^"])*)"|([^\s]*))?/i', $line, $matches)) {
+        if (preg_match('/SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"((?:\\\\.|[^"])*)"|(\S+))?/i', $line, $matches)) {
+            $matches = array_filter($matches,function($item)
+                {return trim("$item")!="";
+            });
+            $name = $matches[1];
+
+            if (isset($matches[2])) {
+                $value = stripcslashes($matches[2]); // handles \" etc
+            } elseif (isset($matches[3])) {
+                $value = $matches[3];
+            } else {
+                $value = "";
+            }
+            //return $matches;
+            return [
+                'name' => $name,
+                'value' => $value
+            ];
+        }
+
+        return null;
+    }
+
 }

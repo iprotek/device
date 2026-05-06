@@ -8,6 +8,7 @@ use iProtek\Device\Helpers\MClientHelper as MikroTikClient;
 use iProtek\Device\Helpers\MQueryHelper as MikroTikQuery;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Models\DeviceAccess;
+use iProtek\Device\Helpers\DeviceVariableHelper;
 
 class MikrotikScriptHelper
 {  
@@ -56,6 +57,7 @@ class MikrotikScriptHelper
             $result["tables"] = $tables;
             $result["context"] = $context;
             //Log::error($result);
+            
             return $result;
         }
 
@@ -116,7 +118,8 @@ class MikrotikScriptHelper
                 $evaluate = static::evaluateCondition($condition, $context);
 
                 if ($evaluate["status"] != 1) {
-                    $evaluate["line"] = $i;
+                    $evaluate["line_no"] = $i;
+                    $evaluate["line"] = $line;
                     return $evaluate;
                 }
 
@@ -129,13 +132,20 @@ class MikrotikScriptHelper
                 }
 
                 if ($result["status"] != 1) {
-                    $result["line"] = $i;
+                    $evaluate["line_no"] = $i;
+                    $evaluate["line"] = $line;
                     return $result;
                 }
 
                 continue;
             }
-
+            else if(preg_match('/SET\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(?:"((?:\\\\.|[^"])*)"|([^\s]*))?/i', $line, $matches)){
+                $result = DeviceVariableHelper::getVariable($line);
+                if($result){
+                    $context[$result["name"]] = $result["value"];
+                }
+                //return ["status"=>0, "message"=>json_encode($context)];
+            }
             // COMMAND
             elseif (str_starts_with($line, '/')) {
                 //return ["status"=>0, "message"=>"Failed"];
