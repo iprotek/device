@@ -73,6 +73,7 @@ class DeviceVariableHelper
 
                 }
                 else{
+                    $field = str_replace('-','_', $field);
                     $str = $account->{$field} ?? ""; 
                 }
 
@@ -203,6 +204,7 @@ class DeviceVariableHelper
         if(!$model) return '';
 
         $model = new $model;
+        $instance = str_replace('-','_', $instance);
         
         $selected = $model->find( $target_id );
         if(!$selected) return '';
@@ -219,9 +221,10 @@ class DeviceVariableHelper
         }
         else
             $selected->load($instance);
-        
+        $field = str_replace('-','_', $field);
         if(is_array($model->{$instance})){
             if(count($model->{$instance}) <= 0 ) return '';
+
 
             if(lower(trim($order) == 'last')){
                 return collect($model->{$instance})->last()->{$field} ?? "";
