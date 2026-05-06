@@ -292,6 +292,7 @@ class MikrotikScriptHelper
         // Mapping logic
         if (!empty($getFields) && !empty($setVars)) {
 
+
             foreach ($getFields as $index => $field) {
                 $targetVar = $setVars[$index];
 
