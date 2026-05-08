@@ -19,6 +19,8 @@ class DeviceAccessTriggerLog extends Model
         "status_id", //0 -pending, 1-success, 2-failed
         "device_template_trigger_id",
         "device_template_trigger_action",
+        "is_resolved",
+        "resolved_info",
 
         "group_id",
         "pay_created_by",

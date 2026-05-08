@@ -16,7 +16,11 @@ use iProtek\Core\Helpers\PayModelHelper;
 
 class DeviceAccountHelper {
 
-
+    static $target_id;
+    static $target_name;
+    static $trigger;
+    static $request;
+    static $command;
     /**
      * Log device access trigger events.
      */
@@ -31,7 +35,8 @@ class DeviceAccountHelper {
                 "response"=> $response,
                 "log_info"=> $log_info,
                 "status_id"=> $status_id,
-                "device_template_trigger_id"=> $trigger_id
+                "device_template_trigger_id"=> $trigger_id,
+                "is_resolved"=> $status_id == 2 ? false : true
             ]);
         }
         else{
@@ -43,9 +48,57 @@ class DeviceAccountHelper {
                 "response"=> $response,
                 "log_info"=> $log_info,
                 "status_id"=> $status_id,
-                "device_template_trigger_id"=> $trigger_id
+                "device_template_trigger_id"=> $trigger_id,
+                "is_resolved"=> $status_id == 2 ? false : true
             ]);
         }
+    }
+
+    public static function fail_trigger_log(
+        array $response,
+        $log_info
+    ){
+        $trigger = static::$trigger;
+        $target_name = static::$target_name;
+        $target_id = static::$target_id;
+        $request = static::$request;
+        $command = static::$command;
+
+        return static::log(
+            $target_name,
+            $target_id,
+            $trigger->device_access_id,
+            $command,
+            json_encode( $response ),
+            $log_info,
+            2,
+            $trigger->id,
+            $request
+        );
+
+    }
+    public static function success_trigger_log(
+        array $response,
+        $log_info
+    ){
+        $trigger = static::$trigger;
+        $target_name = static::$target_name;
+        $target_id = static::$target_id;
+        $request = static::$request;
+        $command = static::$command;
+
+        return static::log(
+            $target_name,
+            $target_id,
+            $trigger->device_access_id,
+            $command,
+            json_encode( $response ),
+            $log_info,
+            1,
+            $trigger->id,
+            $request
+        );
+
     }
 
 
@@ -58,7 +111,6 @@ class DeviceAccountHelper {
 
         //TODO::Test update
         $templateIds = DeviceHelper::allowed_template_trigger_ids($branch_id, $target_name, $target_id, $field_branch_id);
-
 
         //checking for active device with enabled register
         $triggers = PayModelHelper::get(DeviceTemplateTrigger::class, $request, ["target_id"=>0, "target_name"=>$target_name, "enable_register"=>1])
@@ -86,7 +138,10 @@ class DeviceAccountHelper {
 
     //REGISTER
     public static function register( Request $request, $target_name, $target_id, $device_template_trigger_id){
-
+        static::$request = $request;
+        static::$target_name = $target_name;
+        static::$target_id = $target_id;
+        static::$register = "register";
         //PREVENT ENTRIES FROM EMPTY REQUEST
         if($request === null)
             return;
@@ -110,6 +165,7 @@ class DeviceAccountHelper {
         //GET TEMPLATE TRIGGER INFO
         $trigger = PayModelHelper::get(DeviceTemplateTrigger::class, $request)->with(['device_access'])->where('is_active', true)->find($device_template_trigger_id);
 
+        static::$trigger = $trigger;
         if(!$trigger || $trigger->is_active !== true ){
 
             static::log( $target_name, $target_id, 0, "--", "Device Trigger not available.", "Device Trigger not available.", 2, $device_template_trigger_id);
@@ -121,15 +177,20 @@ class DeviceAccountHelper {
         $device_access = $trigger->device_access;
         if(!$device_access || $device_access->is_active !== true){
 
-            static::log( $target_name, $target_id, 0, "--", "Device Access is not available.", "Device Access is not available.", 2, $device_template_trigger_id);
+            static::fail_trigger_log(
+                [],  
+                "Device Access is not available."
+            );
             return ["status"=>0,"message"=>"Device Access is not available."];
 
         }
 
         //CHECK IF ALLOW REGISTER
         if($trigger->enable_register !== true){
-            
-            static::log( $target_name, $target_id, 0, "--", "Register is disabled.", "Register is disabled.", 2, $device_template_trigger_id);
+            static::fail_trigger_log(
+                [],  
+                "Register is disabled."
+            );
             return ["status"=>0, "message"=>"Register is disabled."];
         
         }
@@ -138,14 +199,21 @@ class DeviceAccountHelper {
         //CONVERT TEMPLATE TRANSLATION
         $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
         if(is_array($translate) && $translate["status"] == 0){
+                 
+            static::fail_trigger_log(
+                $translate,  
+                "Translate error: ".$translate["message"]
+            );
 
-            //return ["status"=>0, "message"=>"Invalid".$requestedData['target_name'] . "-" . $requestedData['target_id']];
-            static::log( $target_name, $target_id, 0, "--", "Translate error: ".$translate["message"], "Translate error: ".$translate["message"], 2, $device_template_trigger_id);
             return $translate;
 
         }
         if( !is_string( $translate)){
-            static::log( $target_name, $target_id, 0, "--", "Translate error: Invalid Command", "Translate error: Invalid Command", 2, $device_template_trigger_id);
+            static::fail_trigger_log(
+                $translate,  
+                "Translate error: ".$translate["message"]
+            );
+                
             return ["status"=>0, "message"=>"Invalid Command "];
         }
         //return ["status"=>0, "message"=>$translate];
@@ -159,10 +227,19 @@ class DeviceAccountHelper {
                 $requestedData['target_name'],
                 $requestedData['target_id']
             );
-            if($result["status"] != 1)
-                static::log($requestedData['target_name'], $requestedData['target_id'], $trigger->device_access_id, $translate, $result["message"], $result["message"], 2, $trigger->id);
-            else
-                static::log('mikrotik-connect', $requestedData['target_id'], $trigger->device_access_id, "", "Registration", "Registration for ".$requestedData['target_name'], 2, $trigger->id);
+            if($result["status"] != 1){
+                static::fail_trigger_log(
+                    $result,  
+                    "Registration failed to ".static::$target_name
+                );
+            }
+            else{
+                
+                static::success_trigger_log(
+                    $result,  
+                    "Registration for ".$requestedData['target_name']
+                );
+            }
             return $result;     
        }
         else{
@@ -198,6 +275,10 @@ class DeviceAccountHelper {
     //UPDATES
     public static function update($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
         
+        static::$target_name = $target_name;
+        static::$target_id = $target_id;
+        static::$command = "update";
+
         $current_device_trigger = null;
         try{
 
@@ -215,6 +296,7 @@ class DeviceAccountHelper {
             foreach($device_triggers as $trigger){
                 
                 $current_device_trigger = $trigger;
+                static::$trigger = $trigger;
                 
                 
                 $requestedData = [
@@ -227,7 +309,11 @@ class DeviceAccountHelper {
 
                 if(!$deviceAccount){
                     //RECORD EXISTENCE
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                         "Account not exist for activating."
+                    );
+                    
                     continue;
                 }
                 //PREVENT FROM TRIGGERS
@@ -236,7 +322,10 @@ class DeviceAccountHelper {
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, "--", "Device is inactive or not found!", "Device is inactive or not found.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Device is inactive or not found!"
+                    );
                     continue;
                 }
                 
@@ -246,26 +335,47 @@ class DeviceAccountHelper {
                 //CONVERT TEMPLATE TRANSLATION
                 $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
                 if(is_array($translate) && $translate["status"] == 0){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "failed to translate.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $template,
+                        "Translation Failed"
+                    );
                     continue;
                 }
-                if( !is_string( $translate)){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "Invalid translation.", 2, $trigger->id);
+                if( !is_string( $translate)){                    
+                    static::fail_trigger_log(
+                        $template,
+                        "Translation Failed(2)"
+                    );
                     continue;
                 }
 
                 
                 if($device_access->type == 'mikrotik'){
-                    MikrotikHelper::update(
+                   $result =  MikrotikHelper::update(
                         $deviceAccount, 
                         $translate,
                         $target_name,
                         $target_id
                     );
+                    if($result["status"] != 1){
+                        static::fail_trigger_log(
+                            $result,
+                            "Update Failed: ".$result["message"]
+                        );
+                        return $result;
+                    }
+                    else{                  
+                        static::success_trigger_log(
+                            $result,
+                            "Update for $target_name"
+                        );
+
+                    }
                     continue;
                 }
-                static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
-
+                else{
+                    static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
+                }
             }
             
         }catch(\Exception $ex){
@@ -279,6 +389,10 @@ class DeviceAccountHelper {
 
     //ACTIVATE
     public static function active($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
+
+        static::$target_name = $target_name;
+        static::$target_id = $target_id;
+        static::$command = "active";
 
         $current_device_trigger = null;
         try{
@@ -297,6 +411,7 @@ class DeviceAccountHelper {
             foreach($device_triggers as $trigger){
                 
                 $current_device_trigger = $trigger;
+                static::$trigger = $trigger;
                 
                 $requestedData = [
                     "target_name"=>$target_name,
@@ -309,7 +424,10 @@ class DeviceAccountHelper {
 
                 if(!$deviceAccount){
                     //RECORD EXISTENCE
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for activating.", "Account not exist for activating.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Account not exist for activating."
+                    );
                     continue;
                 }
                 //PREVENT FROM TRIGGERS
@@ -320,7 +438,10 @@ class DeviceAccountHelper {
 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Device is inactive or not found!", "Device is inactive or not found.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Device is inactive or not found."
+                    );
                     continue;
                 }
 
@@ -329,26 +450,46 @@ class DeviceAccountHelper {
                 //CONVERT TEMPLATE TRANSLATION
                 $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
                 if(is_array($translate) && $translate["status"] == 0){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "failed to translate.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $template,
+                        "Translation Failed"
+                    );
                     continue;
                 }
                 if( !is_string( $translate)){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "Invalid translation.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $template,
+                        "Translation Failed(2)"
+                    );
                     continue;
                 }
 
                 
                 if($device_access->type == 'mikrotik'){
-                    MikrotikHelper::active(
+                    $result = MikrotikHelper::active(
                         $deviceAccount, 
                         $translate,
                         $requestedData['target_name'],
                         $requestedData['target_id']
                     );
+                    if($result["status"] != 1){
+                        static::fail_trigger_log(
+                            $result,
+                            "Active Failed: ".$result["message"]
+                        );
+                        return $result;
+                    }
+                    else{                  
+                        static::success_trigger_log(
+                            $result,
+                            "Active for $target_name"
+                        );
+                    }
                     continue;
                 }
-                static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Registration not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
-              
+                else{
+                    static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Registration not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
+                }
 
 
             }
@@ -366,6 +507,10 @@ class DeviceAccountHelper {
     //INACTIVE
     public static function inactive($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
         
+        static::$target_name = $target_name;
+        static::$target_id = $target_id;
+        static::$command = "inactive";
+
         $current_device_trigger = null;
         try{
 
@@ -383,7 +528,7 @@ class DeviceAccountHelper {
             foreach($device_triggers as $trigger){
                 
                 $current_device_trigger = $trigger;
-                
+                static::$trigger = $trigger;
 
                 $requestedData = [
                     "target_name"=>$target_name,
@@ -397,7 +542,11 @@ class DeviceAccountHelper {
 
                 if(!$deviceAccount){
                     //RECORD EXISTENCE
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for deactivation.", "Account not exist for activating.", 2, $trigger->id);
+                    //static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for deactivation.", "Account not exist for activating.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Account not exist for activating."
+                    );
                     continue;
                 }
                 //PREVENT FROM TRIGGERS
@@ -406,7 +555,10 @@ class DeviceAccountHelper {
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Device is inactive or not found!", "Device is inactive or not found.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Device is inactive or not found."
+                    );
                     continue;
                 }
 
@@ -416,26 +568,46 @@ class DeviceAccountHelper {
                 //CONVERT TEMPLATE TRANSLATION
                 $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
                 if(is_array($translate) && $translate["status"] == 0){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "failed to translate.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $translate,
+                        "failed to translate."
+                    );
                     continue;
                 }
                 if( !is_string( $translate)){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "Invalid translation.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $translate,
+                        "Invalid translation(2)."
+                    );
                     continue;
                 }
 
                 
                 if($device_access->type == 'mikrotik'){
-                    MikrotikHelper::inactive(
+                    $result = MikrotikHelper::inactive(
                         $deviceAccount, 
                         $translate,
                         $requestedData['target_name'],
                         $requestedData['target_id']
                     );
+                    if($result["status"] != 1){
+                        static::fail_trigger_log(
+                            $result,
+                            "Inactive Failed: ".$result["message"]
+                        );
+                        return $result;
+                    }
+                    else{                  
+                        static::success_trigger_log(
+                            $result,
+                            "Inactive for $target_name"
+                        );
+                    }
                     continue;
                 }
-                static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
-
+                else{
+                    static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
+                }
             }
             
         }catch(\Exception $ex){
@@ -452,6 +624,9 @@ class DeviceAccountHelper {
     //REMOVE
     public static function remove($target_name, $target_id, $force=false, $field_branch_id='branch_id'){
 
+        static::$target_name = $target_name;
+        static::$target_id = $target_id;
+        static::$command = "remove";
 
         $current_device_trigger = null;
         try{
@@ -470,6 +645,8 @@ class DeviceAccountHelper {
             foreach($device_triggers as $trigger){
                 
                 $current_device_trigger = $trigger;
+                static::$trigger = $trigger;
+
                 $requestedData = [
                     "target_name"=>$target_name,
                     "target_id"=>$target_id,
@@ -482,7 +659,10 @@ class DeviceAccountHelper {
 
                 if(!$deviceAccount){
                     //RECORD EXISTENCE
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Account not exist for removal.", "Account not exist for activating.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Account not exist for activating."
+                    );
                     continue;
                 }
                 //PREVENT FROM TRIGGERS
@@ -491,7 +671,10 @@ class DeviceAccountHelper {
                 
                 $device_access = $trigger->device_access;
                 if(!$device_access || $device_access->is_active !== true){
-                    static::log($target_name, $target_id, $trigger->device_access_id, "--", "Device is inactive or not found!", "Device is inactive or not found.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        [],
+                        "Device is inactive or not found."
+                    );
                     continue;
                 }
                 
@@ -501,30 +684,49 @@ class DeviceAccountHelper {
                 //CONVERT TEMPLATE TRANSLATION
                 $translate = DeviceHelper::translate_template($template, $requestedData['target_name'], $requestedData['target_id']);
                 if(is_array($translate) && $translate["status"] == 0){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "failed to translate.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $template,
+                        "failed to translate."
+                    );
                     continue;
                 }
                 if( !is_string( $translate)){
-                    static::log( $target_name, $target_id, $trigger->device_access_id, $template, "Translation Failed", "Invalid translation.", 2, $trigger->id);
+                    static::fail_trigger_log(
+                        $template,
+                        "Invalid translation(2)."
+                    );
                     continue;
                 }
                 
                 if($device_access->type == 'mikrotik'){
-                    MikrotikHelper::remove(
+                    $result = MikrotikHelper::remove(
                         $deviceAccount, 
                         $translate,
                         $requestedData['target_name'], 
                         $requestedData['target_id']
                     );
+                    if($result["status"] != 1){
+                        static::fail_trigger_log(
+                            $result,
+                            "Remove Failed: ".$result["message"]
+                        );
+                        return $result;
+                    }
+                    else{                  
+                        static::success_trigger_log(
+                            $result,
+                            "Remove for $target_name"
+                        );
+                    }
                     continue;
                 } 
-                static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
-
+                else{
+                    static::log( $target_name, $target_id, $trigger->device_access_id, $translate, "Update not yet available for:".$device_access->type, "Registration not yet available for:".$device_access->type, 2, $trigger->id);
+                }
             }
             
         }catch(\Exception $ex){
             return ["status"=>0, "message"=>"Failed to inactive:".$ex->getMessage()];
-
         }
 
         //DELETE ACCOUNT

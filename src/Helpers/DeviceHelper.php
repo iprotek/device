@@ -36,7 +36,7 @@ class DeviceHelper
 
     public static function allowed_template_trigger_ids($branch_id, $target_name, $target_id, $field_branch_id='branch_id'){
 
-        if(!$branch_id || $branch_id < 0 || empty($branch_id)){
+        if(!$branch_id || $branch_id <= 0 || empty($branch_id)){
            $checkBranch =  \DB::table($target_name)->where('id',$target_id)->first();
            if(!$checkBranch) return [];
            $branch_id = $checkBranch->{$field_branch_id};
