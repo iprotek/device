@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use iProtek\Device\Models\DeviceAccount;
 use iProtek\Device\Models\DeviceAccess;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class DeviceVariableHelper
 { 
@@ -301,6 +302,18 @@ class DeviceVariableHelper
         }
 
         return null;
+    }
+
+    static function modelHasColumn($model, string $column): bool
+    {
+        $instance = is_string($model)
+            ? new $model
+            : $model;
+
+        return Schema::hasColumn(
+            $instance->getTable(),
+            $column
+        );
     }
 
 }

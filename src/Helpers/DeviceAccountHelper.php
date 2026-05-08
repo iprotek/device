@@ -152,14 +152,19 @@ class DeviceAccountHelper {
 
         //IF MIKROTIK
         if($device_access->type == 'mikrotik'){
-            return \iProtek\Device\Helpers\Console\MikrotikHelper::register(
+            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::register(
                 $request,
                 $trigger,
                 $translate,
                 $requestedData['target_name'],
                 $requestedData['target_id']
             );
-        }
+            if($result["status"] != 1)
+                static::log($requestedData['target_name'], $requestedData['target_id'], $trigger->device_access_id, $translate, $result["message"], $result["message"], 2, $trigger->id);
+            else
+                static::log('mikrotik-connect', $requestedData['target_id'], $trigger->device_access_id, "", "Registration", "Registration for ".$requestedData['target_name'], 2, $trigger->id);
+            return $result;     
+       }
         else{
 
         }

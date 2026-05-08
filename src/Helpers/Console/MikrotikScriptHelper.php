@@ -34,22 +34,36 @@ class MikrotikScriptHelper
         if($result['status'] != 1){
             return $result;
         } 
-            
-        //return $result;
-        ////////////////// START ///////////
-
         $client = $result['client'];/* */
+
+        if($ini_context){
+            $ini_context = json_decode( $ini_context , true);
+            if($ini_context)
+                $context = $ini_context;
+         }
+    
+
+        $context["_added_ids"] =  $added_ids;
+
+        return static::executeNow($script, $client, $is_print_only, $context );
+    }
+
+    public static function executeNow($script, $client, $is_print_only,array $context=[]){
+            
+        ////////////////// START ///////////
+        $i = 0;
+        $tables = [];
         $lines = [];
+
+        //$context = [];
+        if(!isset($context["_added_ids"])){
+            $context["_added_ids"] = [];
+        }
+
         static::$is_print_only = $is_print_only;
         $result = static::validateScript($script, $lines);
         if($result["status"] != 1)
             return $result;
-
-        $context = json_decode( $ini_context , true);
-
-        $context["_added_ids"] =  $added_ids;
-        $i = 0;
-        $tables = [];
 
 
         $result = static::runBlock($lines, $i, $context, $tables, $client);
@@ -67,6 +81,7 @@ class MikrotikScriptHelper
             "context" => $context,
             "tables" => $tables
         ];
+
     }
 
     public static function runBlock(&$lines, &$i, &$context, &$tables, $client)
@@ -581,6 +596,7 @@ class MikrotikScriptHelper
         $response =  $client->query($query['query'])->read();
 
         if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){   
+            Log::error($response);
             return [
                 "status"=>0,
                 "message"=>"Error ".$response['after']['message']." on $line",
@@ -588,15 +604,20 @@ class MikrotikScriptHelper
                 "line_context"=>$line_value
             ];
         }
-        if(!isset($response["ret"])){
-            return ["status"=>0, "message"=>"Unable to retrieve .id from adding on this line: $line"];
+        if( !isset($response["ret"]) ){
+            if($response["after"] && !isset($response["after"]["ret"])){
+                //Log::error($response["after"]);
+                return ["status"=>0, "message"=>"Unable to retrieve .id from adding on this line: $line"];
+            }
         }
+        $added_id =  $response["ret"] ?? $response["after"]["ret"];
+        //return ["status"=>0, "message"=>"Something goes wrong."];
 
-        $context["_added_ids"][] = $response["ret"];
+        $context["_added_ids"][] = $added_id;
 
         if($setVarName)
-           $context[$setVarName] = $response["ret"];
-        return ["status"=>1, "message"=>"Successfully Added.", "id"=>$response["ret"] ];
+           $context[$setVarName] = $added_id;
+        return ["status"=>1, "message"=>"Successfully Added.", "id"=>$added_id ];
     }
 
     static function set($line, $line_value, $client){
@@ -605,14 +626,14 @@ class MikrotikScriptHelper
             return ["status"=>1, "message"=>"By pass [set] for testing purposes at $line."];
         }
     
-        $query = static::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
-            return static::find_command($client, $baseLine, $keyValues);
+        $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
+            return MikrotikHelper::find_command($client, $baseLine, $keyValues);
         });
 
         $response =  $client->query($query['query'])->read();
         //Error popup
         if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
-            return ["status"=>0,"message"=>"Error: ".$response['after']['message']]." at line $line";
+            return ["status"=>0,"message"=>"Error: ".$response['after']['message']." at line $line"];
         }
         return [
             "status"=>1, "message"=>"Successfully Updated"
@@ -625,8 +646,8 @@ class MikrotikScriptHelper
             return ["status"=>1, "message"=>"By pass [remove] for testing purposes at $line."];
         }
         
-        $query = static::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
-            return static::find_command($client, $baseLine, $keyValues);
+        $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
+            return MikrotikHelper::find_command($client, $baseLine, $keyValues);
         });
 
         $response =  $client->query($query['query'])->read();

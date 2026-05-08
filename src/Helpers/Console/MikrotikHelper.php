@@ -283,7 +283,7 @@ class MikrotikHelper
         ];
     }
 
-    public static function register( Request $request = null, DeviceTemplateTrigger $deviceTrigger, $template, $target_name, $target_id){
+    public static function register( Request $request = null, DeviceTemplateTrigger $deviceTrigger, $translate, $target_name, $target_id){
 
         //VALIDATIONS
         $deviceTrigger = DeviceTemplateTrigger::with('device_access')->find($deviceTrigger->id);
@@ -305,18 +305,71 @@ class MikrotikHelper
         if($checkLogin["status"] !== 1 ){
             return $checkLogin;
         }
-        $client = $checkLogin["client"];        
-        $template = $deviceTrigger->register_command_template;
-        //CONVERT TEMPLATE TRANSLATION
-        $translate = DeviceHelper::translate_template($template, $target_name, $target_id);
-        if(is_array($translate) && $translate["status"] == 0){
-            static::log( $target_name, $target_id, 0, "--", "Translate error: ".$translate["message"], "Translate error: ".$translate["message"], 2, $deviceTrigger->id);
-            return $translate;
+        $client = $checkLogin["client"];
+
+
+        $result = MikrotikScriptHelper::executeNow($translate, $client, false);
+
+        //Log::error($translate);
+        //Log::error($result);
+        //return ["status"=>0, "message"=>$translate]
+        if(!$result || !is_array($result)){
+            return ["status"=>0, "message"=>"Something goes wrong"];
         }
-        if( !is_string( $translate)){
-            static::log( $target_name, $target_id, 0, "--", "Translate error: Invalid Command", "Translate error: Invalid Command", 2, $deviceTrigger->id);
-            return ["status"=>0, "message"=>"Invalid Command "];
+        if($result["status"] != 1){
+            return $result;
         }
+        
+                
+        //UPDATE THE TARGET FIELDS
+        $context = $result["context"];
+        if(!$context){
+            return ["status"=>0, "message"=>"Please contact administrator for the error."];
+        }
+
+        $_updates = $result["context"]["_updates"] ?? "";
+        if($_updates){
+            $updateResult = static::targetUpdates($_updates , $target_name, $target_id);
+            if($updateResult["status"] != 1) 
+                return $updateResult;
+        }
+
+        $addedId = "";
+        $message = "";
+        if(isset($context["_status"])){
+            if($context["_status"] == "0")
+                return["status"=>0, "message"=>$context["_message"] ?? "Unidentified error inside script."];
+            if(isset($context["_id"]) && $context["_id"] )
+                $addedId = $context["_id"];
+        }
+
+        if(!$addedId && count($context["_added_ids"])){
+            $addedId = $context["_added_ids"][0];
+        }
+        if(!trim($addedId)){
+            return ["status"=>0, "message"=>"failed to add"];
+        }
+
+        $message = $context["_message"] ?? "Registered successfully";
+        $requestData = [
+            "device_template_trigger_id"=>$deviceTrigger->id,
+            "target_name"=>$target_name,
+            "target_id"=>$target_id,
+            "account_id"=>$addedId,
+            "is_active"=>1,
+            "active_info"=>"Regisration Successfull"
+        ];
+
+        if($request){
+            PayModelHelper::create( DeviceAccount::class, $request, $requestData);
+        }else{
+            DeviceAccount::create($requestData);
+        }
+        //GETTING THE DESIRED ID RESULT        
+        //LOG HERE FOR ERROR
+        return ["status"=>1, "message"=>$message];
+
+
 
 
         //SPLIT COMMAND INTO 2
@@ -413,6 +466,52 @@ class MikrotikHelper
         }
 
         return ["status"=>0, "message"=>"failed to register"];
+    }
+
+    static function targetUpdates($updateStr, $target_name, $target_id){
+
+        $result = [];
+
+        foreach (explode(',', $updateStr) as $item) {
+
+            $item = trim($item);
+
+            // skip empty values
+            if (empty($item)) {
+                continue;
+            }
+
+            // split only on first =
+            [$key, $value] = explode('=', $item, 2);
+
+            // normalize key
+            $key = str_replace('-', '_', trim($key));
+            if(!$key) continue;
+            // clean value
+            $value = trim($value);
+            if( in_array( strtolower($key),["id", "branch_id", "group_id", "updated_at", "created_at", "deleted_at", "pay_created_at", "pay_updated_at"]) ) continue;
+            $result[$key] = $value;
+        }
+        if(count($result) > 0){
+            $model = DeviceVariableHelper::getModelByTable($target_name);
+            if(!$model){
+                return ["status"=>0, "message"=>"Unable to update ".$target_name];
+            }
+            $target = (new $model)->find($target_id);
+            if($target){
+                $target->timestamps = false;
+                foreach(array_keys($result) as $key){
+                    if(!DeviceVariableHelper::modelHasColumn($model, $key)){
+                        return ["status"=>0, "message"=>"Not exists column $key at $target_name"];
+                    }
+                    $target->{$key} = $result[$key];
+                }
+                $target->save();
+                return ["status"=>1, "message"=>"Successfully updated fields"];
+            }
+            return ["status"=>0, "message"=>"Specified on $target_name cannot be found."];
+        }
+        return ["status"=>1, "message"=>"Passed.. no updates detected."];
     }
 
     public static function update(  DeviceAccount $deviceAccount, $commandStr, $target_name, $target_id, Request $request = null){
