@@ -532,6 +532,42 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
+            
+            
+            $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
+
+            if($result["status"] != 1){
+                return $result;
+            }
+
+            $status = $result["status"];
+            $message = "Account has now updated.";
+            
+            $context = $result["context"];
+            if(!$context){
+                return ["status"=>0, "message"=>"Please contact administrator for the error."];
+            }
+
+            if( isset( $context["_status"] ) )
+                $status = $context["_status"] == "1" ? 1:0;
+
+            if( isset( $context["_message"] ) )
+                $message = $context["_message"];
+
+            if($status == "1"){
+                if($request){
+                    PayModelHelper::update($deviceAccount, $request, [
+                        "is_active"=>false
+                    ]);
+                }else{
+                    $deviceAccount->is_active = false;
+                    $deviceAccount->save();
+                }
+            }
+
+            return ["status"=>$status, "message"=>$message];
+
+            /*
  
             $command_lines = $result['command_lines'];
 
@@ -554,6 +590,7 @@ class MikrotikHelper
 
 
             return ["status"=>1, "message"=>"Update Completed."];
+            */
 
         }catch(\Exception $ex){
             
@@ -581,7 +618,40 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
- 
+            
+            $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
+
+            if($result["status"] != 1){
+                return $result;
+            }
+
+            $status = $result["status"];
+            $message = "Account Reactivated.";
+            
+            $context = $result["context"];
+            if(!$context){
+                return ["status"=>0, "message"=>"Please contact administrator for the error."];
+            }
+
+            if( isset( $context["_status"] ) )
+                $status = $context["_status"] == "1" ? 1:0;
+
+            if( isset( $context["_message"] ) )
+                $message = $context["_message"];
+
+            if($status == "1"){
+                if($request){
+                    PayModelHelper::update($deviceAccount, $request, [
+                        "is_active"=>false
+                    ]);
+                }else{
+                    $deviceAccount->is_active = false;
+                    $deviceAccount->save();
+                }
+            }
+
+            return ["status"=>$status, "message"=>$message];
+            /*
             $command_lines = $result['command_lines'];
             $activeUsers = [];
 
@@ -595,20 +665,20 @@ class MikrotikHelper
 
                 $response =  $client->query($query['query'])->read();
 
-                /*
-                if($base_command == '/ppp/active/print'){ 
-                    $activeUsers = $response;
-                    foreach($activeUsers as $activeUser){
-                        $query = new MikroTikQuery('/ppp/active/remove');
-                        $query->equal('.id', $activeUser['.id']);
-                        $response =  $client->query($query)->read();
+                
+                //if($base_command == '/ppp/active/print'){ 
+                //    $activeUsers = $response;
+               //     foreach($activeUsers as $activeUser){
+                //        $query = new MikroTikQuery('/ppp/active/remove');
+                //        $query->equal('.id', $activeUser['.id']);
+                //        $response =  $client->query($query)->read();
                         //Error popup
-                        if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
-                            return["status"=>0,"message"=>$response['after']['message']];
-                        }
-                    }
-                }
-                */
+               //         if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+                //            return["status"=>0,"message"=>$response['after']['message']];
+                //        }
+                //    }
+               // }
+                
                 
                 //Error pop up
                 if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
@@ -627,6 +697,7 @@ class MikrotikHelper
 
 
             return ["status"=>1, "message"=>"Set Active Completed."];
+            */
 
         }catch(\Exception $ex){
             
@@ -652,7 +723,40 @@ class MikrotikHelper
         $client = $result['client'];
 
         try{
- 
+        
+            $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
+
+            if($result["status"] != 1){
+                return $result;
+            }
+
+            $status = $result["status"];
+            $message = "Account Inactivated.";
+            
+            $context = $result["context"];
+            if(!$context){
+                return ["status"=>0, "message"=>"Please contact administrator for the error."];
+            }
+
+            if( isset( $context["_status"] ) )
+                $status = $context["_status"] == "1" ? 1:0;
+
+            if( isset( $context["_message"] ) )
+                $message = $context["_message"];
+
+            if($status == "1"){
+                if($request){
+                    PayModelHelper::update($deviceAccount, $request, [
+                        "is_active"=>false
+                    ]);
+                }else{
+                    $deviceAccount->is_active = false;
+                    $deviceAccount->save();
+                }
+            }
+
+            return ["status"=>$status, "message"=>$message];
+            /*
             $command_lines = $result['command_lines'];
 
             $activeUsers = [];
@@ -678,7 +782,7 @@ class MikrotikHelper
                     return["status"=>0,"message"=>$response['after']['message']];
                 } 
             }
-
+            */
 
             //REMOVAL OF SELECTED ACTIVE USERS
             /*
@@ -691,7 +795,7 @@ class MikrotikHelper
                     return["status"=>0,"message"=>$response['after']['message']];
                 }
             }*/
-
+            /*
             if($request){
                 PayModelHelper::update($deviceAccount, $request, [
                     "is_active"=>false
@@ -703,6 +807,7 @@ class MikrotikHelper
 
 
             return ["status"=>1, "message"=>  "Done Inactive."];
+            */
 
         }catch(\Exception $ex){
             
@@ -727,14 +832,6 @@ class MikrotikHelper
         $client = $result['client'];
         $errors = [];
         try{
-
-            
-            $command_lines = $result['command_lines'];
-
-            $activeUsers = [];
-
-
-
             
             $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
 
@@ -767,6 +864,12 @@ class MikrotikHelper
             return ["status"=>$status, "message"=>$message];
 
             /*
+            
+            
+            $command_lines = $result['command_lines'];
+
+            $activeUsers = [];
+
             foreach($command_lines as $command){
 
                 $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
