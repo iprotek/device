@@ -453,8 +453,18 @@ class MikrotikScriptHelper
         if(preg_match('#^/\S+/set(\s|$)#', $line)){
             return static::set($line, $line_value, $client);
         }
+        
+        //Check if its enable
+        if(preg_match('#^/\S+/enable(\s|$)#', $line)){
+            return static::set($line, $line_value, $client);
+        }
 
-        //Check if its add
+        //Check if its disable
+        if(preg_match('#^/\S+/disable(\s|$)#', $line)){
+            return static::set($line, $line_value, $client);
+        }
+
+        //Check if its make-static
         if(preg_match('#^/\S+/make-static(\s|$)#', $line)){
             return static::set($line, $line_value, $client);
         }
