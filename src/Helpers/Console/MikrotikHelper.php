@@ -133,33 +133,44 @@ class MikrotikHelper
 
 
         // Split the command into parts
-        $parts = explode(' ', trim($cliCommand));
+        $testVar = explode(' ', trim($cliCommand));
+        $baseCommand = array_shift( $testVar );
+        //preg_match('/^([^\s]+)/', $cliCommand, $parts);
+        preg_match_all('/([^\s=]+)="([^"]*)"/', $cliCommand, $matches, PREG_SET_ORDER);
+        $parts = [];
+        foreach($matches as $match){
+            if($match[0]){
+                $parts[] = $match[0];
+            }
+        }
 
         // Extract the base command (e.g., "/ppp/secret/add")
-        $baseCommand = array_shift($parts);
+        //$baseCommand = array_shift($parts);
 
         // Create the API Query object
         $query = new MikroTikQuery($baseCommand);
 
         // Parse parameters (e.g., name="user1" password="1234")
-        $is_where = false;
+        $is_where = preg_match('#^/\S+/print(\s|$)#', $baseCommand) ? true : false;
         foreach ($parts as $part) {
 
+            /*
             if(strtolower($part) == 'where'){
                 $is_where = true;
             }
             else if(strpos($part, '=') === false && strpos($part, '~') === false){
                 $is_where = false;
             }
-
+            */
 
             if (strpos($part, '=') !== false) {
                 list($key, $value) = explode('=', $part, 2);
+                
                 $value = trim($value, '"'); // Remove quotes if present
-                if($is_where)
+                if($is_where){
                     $query->where($key, $value);
+                }
                 else{
-                    //$query->add("=$key=\"$value\"");
                     $query->equal($key, $value);
                 }
             }
