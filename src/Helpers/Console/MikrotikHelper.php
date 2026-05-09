@@ -350,7 +350,7 @@ class MikrotikHelper
             return ["status"=>0, "message"=>"failed to add"];
         }
 
-        $message = $context["_message"] ?? "Registered successfully";
+        $message = $context["_message"] ?? "Successfully Registered.";
         $requestData = [
             "device_template_trigger_id"=>$deviceTrigger->id,
             "target_name"=>$target_name,
@@ -733,6 +733,40 @@ class MikrotikHelper
 
             $activeUsers = [];
 
+
+
+            
+            $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
+
+            if($result["status"] != 1){
+                return $result;
+            }
+
+            $status = $result["status"];
+            $message = "Successfully Removed";
+            
+            $context = $result["context"];
+            if(!$context){
+                return ["status"=>0, "message"=>"Please contact administrator for the error."];
+            }
+
+            if( isset( $context["_status"] ) )
+                $status = $context["_status"] == "1" ? 1:0;
+
+            if( isset( $context["_message"] ) )
+                $message = $context["_message"];
+
+            if($status == "1"){
+                if($request)
+                    PayModelHelper::delete($deviceAccount, $request);
+                else 
+                    $deviceAccount->delete();
+            }
+
+
+            return ["status"=>$status, "message"=>$message];
+
+            /*
             foreach($command_lines as $command){
 
                 $query = static::convertCliToApiQuery($command, function($baseLine, $keyValues)use($client){
@@ -751,18 +785,19 @@ class MikrotikHelper
                 PayModelHelper::delete($deviceAccount, $request);
             else 
                 $deviceAccount->delete();
-            /*
-            if($request){
-                PayModelHelper::update($deviceAccount, $request, []);
-            }else{
-                $deviceAccount->save();
-            }
-            */
+           
+           // if($request){
+           //     PayModelHelper::update($deviceAccount, $request, []);
+           // }else{
+            //    $deviceAccount->save();
+            //}
+        
             if(count($errors)>0){
                 return ["status"=>1, "message"=>"Removed with errors. (".implode(',', $errors).")"];
             }
 
             return ["status"=>1, "message"=>"Removed successfully."];
+            */
 
         }catch(\Exception $ex){
             

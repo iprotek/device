@@ -141,7 +141,7 @@ class DeviceAccountHelper {
         static::$request = $request;
         static::$target_name = $target_name;
         static::$target_id = $target_id;
-        static::$register = "register";
+        static::$command = "register";
         //PREVENT ENTRIES FROM EMPTY REQUEST
         if($request === null)
             return;
