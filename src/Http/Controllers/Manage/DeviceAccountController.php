@@ -11,6 +11,7 @@ use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Models\DeviceAccount;
 use iProtek\Device\Helpers\DeviceHelper;
 use Illuminate\Support\Facades\Log; 
+use iProtek\Device\Helpers\DeviceAccountHelper;
 
 class DeviceAccountController extends _CommonController
 {
@@ -87,7 +88,7 @@ class DeviceAccountController extends _CommonController
         $target_id = $requestedData['target_id'];
         $device_template_trigger_id = $requestedData['device_template_trigger_id'];
 
-
+        
         return \iProtek\Device\Helpers\DeviceAccountHelper::register($request, $target_name, $target_id, $device_template_trigger_id);
 
         //CHECK IF ACCOUNT EXISTS
@@ -216,13 +217,32 @@ class DeviceAccountController extends _CommonController
 
         
         if($device_access->type == 'mikrotik'){
-            return \iProtek\Device\Helpers\Console\MikrotikHelper::update(
+            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::update(
                 $device_account, 
                 $translate,
                 $requestedData['target_name'],
                 $requestedData['target_id'], 
                 $request
             );
+            
+            DeviceAccountHelper::$target_name = $request->target_name;
+            DeviceAccountHelper::$target_id = $request->target_id;
+            DeviceAccountHelper::$command = "remove";
+            DeviceAccountHelper::$trigger = $trigger;
+
+            if($result["status"] != 1){
+                DeviceAccountHelper::fail_trigger_log(
+                    $result,
+                    "Remove Failed: ".$result["message"]
+                );
+            }
+            else{  
+                DeviceAccountHelper::success_trigger_log(
+                    $result,
+                    "Remove for ".$request->target_name
+                );
+            }
+            return $result;
         }
         else{
 
@@ -283,13 +303,32 @@ class DeviceAccountController extends _CommonController
 
         
         if($device_access->type == 'mikrotik'){
-            return \iProtek\Device\Helpers\Console\MikrotikHelper::active(
+            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::active(
                 $device_account, 
                 $translate,
                 $requestedData['target_name'],
                 $requestedData['target_id'],
                 $request
             );
+            
+            DeviceAccountHelper::$target_name = $request->target_name;
+            DeviceAccountHelper::$target_id = $request->target_id;
+            DeviceAccountHelper::$command = "remove";
+            DeviceAccountHelper::$trigger = $trigger;
+
+            if($result["status"] != 1){
+                DeviceAccountHelper::fail_trigger_log(
+                    $result,
+                    "Remove Failed: ".$result["message"]
+                );
+            }
+            else{  
+                DeviceAccountHelper::success_trigger_log(
+                    $result,
+                    "Remove for ".$request->target_name
+                );
+            }
+            return $result;
         }
         else{
 
@@ -352,13 +391,32 @@ class DeviceAccountController extends _CommonController
 
         
         if($device_access->type == 'mikrotik'){
-            return \iProtek\Device\Helpers\Console\MikrotikHelper::inactive(
+            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::inactive(
                 $device_account, 
                 $translate,
                 $requestedData['target_name'],
                 $requestedData['target_id'],
                 $request
             );
+            
+            DeviceAccountHelper::$target_name = $request->target_name;
+            DeviceAccountHelper::$target_id = $request->target_id;
+            DeviceAccountHelper::$command = "remove";
+            DeviceAccountHelper::$trigger = $trigger;
+
+            if($result["status"] != 1){
+                DeviceAccountHelper::fail_trigger_log(
+                    $result,
+                    "Remove Failed: ".$result["message"]
+                );
+            }
+            else{  
+                DeviceAccountHelper::success_trigger_log(
+                    $result,
+                    "Remove for ".$request->target_name
+                );
+            }
+            return $result;
         }
         else{
 
@@ -395,6 +453,7 @@ class DeviceAccountController extends _CommonController
         ])->validated();
 
 
+
         
         
         //GET TEMPLATE TRIGGER INFO
@@ -423,13 +482,33 @@ class DeviceAccountController extends _CommonController
 
         
         if($device_access->type == 'mikrotik'){
-            return \iProtek\Device\Helpers\Console\MikrotikHelper::remove(
+            $result = \iProtek\Device\Helpers\Console\MikrotikHelper::remove(
                 $device_account, 
                 $translate,
                 $requestedData['target_name'],
                 $requestedData['target_id'],
                 $request
             );
+            
+            DeviceAccountHelper::$target_name = $request->target_name;
+            DeviceAccountHelper::$target_id = $request->target_id;
+            DeviceAccountHelper::$command = "remove";
+            DeviceAccountHelper::$trigger = $trigger;
+
+            if($result["status"] != 1){
+                DeviceAccountHelper::fail_trigger_log(
+                    $result,
+                    "Remove Failed: ".$result["message"]
+                );
+            }
+            else{  
+                DeviceAccountHelper::success_trigger_log(
+                    $result,
+                    "Remove for ".$request->target_name
+                );
+            }
+
+            return $result;
         }
         else{
 

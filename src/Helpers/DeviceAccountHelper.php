@@ -19,7 +19,7 @@ class DeviceAccountHelper {
     static $target_id;
     static $target_name;
     static $trigger;
-    static $request;
+    static $request = null;
     static $command;
     /**
      * Log device access trigger events.
