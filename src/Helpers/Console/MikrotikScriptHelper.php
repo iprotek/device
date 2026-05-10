@@ -668,6 +668,7 @@ class MikrotikScriptHelper
         $response =  $client->query($query['query'])->read();
         //Error popup
         if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
+            Log::error($query['query']);
             return ["status"=>0,"message"=>"Error: ".$response['after']['message']." at line $line => $line_value"];
         }
         return [
