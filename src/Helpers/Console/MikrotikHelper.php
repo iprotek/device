@@ -116,14 +116,14 @@ class MikrotikHelper
 
         
         if(is_array($response) && isset($response["after"]) && isset($response["after"]["message"] )){
-            Log::error($response);
+            //Log::error($response);
             return '.id="E1:*0**"';
         }
     
         if(is_array($response) && count($response) > 0){
             return ".id=\"".$response[0][".id"].'"';
         }
-        Log::error($response);
+        //Log::error($response);
         return '.id="E2:*0**"';
     }
 
