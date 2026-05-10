@@ -842,7 +842,7 @@ class MikrotikHelper
 
         $client = $result['client'];
         $errors = [];
-        try{
+        //try{
             
             $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
 
@@ -913,11 +913,11 @@ class MikrotikHelper
             return ["status"=>1, "message"=>"Removed successfully."];
             */
 
-        }catch(\Exception $ex){
+        //}catch(\Exception $ex){
             
             //Log::error($ex->getMessage());
-            return ["status"=>0, "message"=>"Error: ".$ex->getMessage()];
-        }  
+            //return ["status"=>0, "message"=>"Error: ".$ex->getMessage()];
+        //}  
     }
 
 

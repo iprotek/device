@@ -211,7 +211,17 @@ Route::prefix('/devices')->name('.devices')->group(function(){
             ->defaults("_is_allow", false)
             ->name('.update');
 
+        Route::prefix('log')->name('.log')->group(function(){
+
+            Route::get('list', [DeviceAccessTriggerLogController::class, 'list'])
+                ->defaults("_description", "Get all logs of trigger and device")
+                ->defaults("_is_visible", false)
+                ->defaults("_is_allow", true)
+                ->name('.list');
+
+        });
 
     });
+
 
 });
