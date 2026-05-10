@@ -22,9 +22,13 @@ class DeviceAccessTriggerLogController extends _CommonController
             "device_access_id"=>"required"
         ])->validated(); 
 
-        $deviceList = PayModelHelper::with(['device_access'=>function($q){
-            $q->select('id', 'name', 'is_active');
-        }])->get(DeviceAccessTriggerLog::class, $request, $data);
+        $deviceList = PayModelHelper::get(DeviceAccessTriggerLog::class, $request, $data)
+        ->with(['trigger'=>function($q){
+            $q->select('id', 'trigger_name', 'is_active', 'device_access_id');
+            $q->with(['device_access'=>function($q){
+                $q->select('id', 'name', 'is_active');
+            }]);
+        }]);
         
         if($request->target_name){
             $deviceList->where('target_name', $request->target_name);

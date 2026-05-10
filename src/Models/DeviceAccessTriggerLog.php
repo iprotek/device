@@ -33,5 +33,9 @@ class DeviceAccessTriggerLog extends Model
         "created_at"=>"datetime:F j, Y h:i A"
     ];
 
+    public function trigger(){
+        return $this->belongsTo(DeviceTemplateTrigger::class, 'device_template_trigger_id');
+    }
+
 
 }
