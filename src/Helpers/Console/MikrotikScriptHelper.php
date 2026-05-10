@@ -663,9 +663,9 @@ class MikrotikScriptHelper
         
         $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
             $result = MikrotikHelper::find_command($client, $baseLine, $keyValues);
-            Log::error($baseLine);
-            Log::error($result);
-            Log::error($keyValues);
+            //Log::error($baseLine);
+            //Log::error($result);
+            //Log::error($keyValues);
             return $result;
         });
 
