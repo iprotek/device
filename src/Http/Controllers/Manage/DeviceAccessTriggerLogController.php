@@ -19,9 +19,14 @@ class DeviceAccessTriggerLogController extends _CommonController
     //
     public function list(Request $request){
 
-        $data = $this->validate($request, [
-            "device_access_id"=>"required"
-        ])->validated(); 
+        //$data = $this->validate($request, [
+        //    "device_access_id"=>"required"
+        //])->validated(); 
+
+        $data = [];
+        if($request->device_access_id){
+            $data["device_access_id"] = $request->device_access_id;
+        }
 
         $deviceList = PayModelHelper::get(DeviceAccessTriggerLog::class, $request, $data)
         ->with(['trigger'=>function($q){
