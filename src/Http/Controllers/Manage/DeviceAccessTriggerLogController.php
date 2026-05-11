@@ -10,6 +10,7 @@ use iProtek\Device\Models\DeviceAccess;
 use iProtek\Device\Helpers\Console\MikrotikHelper;
 use iProtek\Device\Helpers\Console\SshHelper;
 use iProtek\Device\Models\DeviceAccessTriggerLog;
+use Illuminate\Support\Facades\Log; 
 
 class DeviceAccessTriggerLogController extends _CommonController
 {
@@ -48,5 +49,51 @@ class DeviceAccessTriggerLogController extends _CommonController
         } 
 
         return $deviceList->orderBy('is_resolved','ASC')->orderBy('id', 'desc')->paginate(10);
+    }
+
+    public function resolve(Request $request){
+        $this->validate($request, [
+            "log_id"=>"nullable",
+            "device_access_id"=>"nullable",
+            "target_name"=>"required",
+            "target_id"=>"required",
+            "resolved_info"=>"required",
+            "device_template_trigger_id"=>"nullable"
+        ]);
+
+        $logs = DeviceAccessTriggerLog::on();
+        //Specific log id
+        if($request->log_id){
+            $logs->where('id', $request->log_id);
+        }
+        //Specific trigger
+        if($request->device_template_trigger_id){
+            $logs->where('device_template_trigger_id', $request->device_template_trigger_id);
+        }
+        
+        //Required
+        if($request->device_access_id){
+            $logs->where('device_access_id', $request->device_access_id);
+        }
+
+        $logs->where([
+            "target_name"=>$request->target_name,
+            "target_id"=>$request->target_id
+        ]);
+        Log::error("GG");
+        /*
+        $logs->update( [ 
+            "is_resolved"=>true,
+            "resolved_info"=>$request->resolved_info
+        ]);
+        */
+        
+        PayModelHelper::update($logs, $request, [ 
+            "is_resolved"=>true,
+            "resolved_info"=>$request->resolved_info
+        ]);
+        
+
+        return ["status"=>1, "message"=>"Done updating."];
     }
 }

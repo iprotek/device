@@ -3,9 +3,10 @@
 namespace iProtek\Device\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+//use Illuminate\Database\Eloquent\Model;
+use iProtek\Core\Models\_CommonModel;
 
-class DeviceAccessTriggerLog extends Model
+class DeviceAccessTriggerLog extends _CommonModel
 {
     use HasFactory;
 

@@ -219,6 +219,12 @@ Route::prefix('/devices')->name('.devices')->group(function(){
                 ->defaults("_is_allow", true)
                 ->name('.list');
 
+            Route::put('resolve', [DeviceAccessTriggerLogController::class, 'resolve'])
+                ->defaults("_description", "Mark resolve to an error in device and trigger.")
+                ->defaults("_is_visible", false)
+                ->defaults("_is_allow", true)
+                ->name('.resolve');
+
         });
 
     });
