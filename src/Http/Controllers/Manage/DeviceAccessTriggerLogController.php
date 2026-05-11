@@ -83,15 +83,10 @@ class DeviceAccessTriggerLogController extends _CommonController
 
         $logs->where([
             "target_name"=>$request->target_name,
-            "target_id"=>$request->target_id
+            "target_id"=>$request->target_id,
+            "is_resolved"=>false,
+            "status_id"=>2
         ]);
-        Log::error("GG");
-        /*
-        $logs->update( [ 
-            "is_resolved"=>true,
-            "resolved_info"=>$request->resolved_info
-        ]);
-        */
         
         PayModelHelper::update($logs, $request, [ 
             "is_resolved"=>true,
