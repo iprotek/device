@@ -47,6 +47,6 @@ class DeviceAccessTriggerLogController extends _CommonController
             $deviceList->whereRaw(' ( CONCAT(target_name, command, log_info) LIKE ? )', [$search_text]); 
         } 
 
-        return $deviceList->orderBy('id', 'desc')->paginate(10);
+        return $deviceList->orderBy('is_resolved','ASC')->orderBy('id', 'desc')->paginate(10);
     }
 }
