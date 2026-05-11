@@ -28,7 +28,7 @@ class DeviceAccessTriggerLogController extends _CommonController
             $data["device_access_id"] = $request->device_access_id;
         }
 
-        $deviceList = PayModelHelper::get(DeviceAccessTriggerLog::class, $request, $data)
+        $deviceList = DeviceAccessTriggerLog::where($data)
         ->with(['trigger'=>function($q){
             $q->select('id', 'trigger_name', 'is_active', 'device_access_id');
             $q->with(['device_access'=>function($q){
