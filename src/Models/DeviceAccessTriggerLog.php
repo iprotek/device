@@ -5,10 +5,11 @@ namespace iProtek\Device\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 //use Illuminate\Database\Eloquent\Model;
 use iProtek\Core\Models\_CommonModel;
+use Awobaz\Compoships\Compoships;
 
 class DeviceAccessTriggerLog extends _CommonModel
 {
-    use HasFactory;
+    use HasFactory, Compoships;
 
     protected $fillable = [
         "device_access_id",

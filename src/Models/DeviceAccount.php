@@ -4,10 +4,14 @@ namespace iProtek\Device\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log; 
+use iProtek\Core\Models\_CommonModel;
+use Awobaz\Compoships\Compoships;
 
-class DeviceAccount extends Model
+class DeviceAccount extends _CommonModel
 {
-    use HasFactory;
+    use HasFactory, Compoships;
+    //use Compoships;
     
     public $fillable = [
         "group_id",
@@ -33,5 +37,10 @@ class DeviceAccount extends Model
 
     public function device_template_trigger(){
         return $this->belongsTo(DeviceTemplateTrigger::class, 'device_template_trigger_id');
+    }
+
+    public function latest_action(){ 
+            return $this->hasOne(DeviceAccessTriggerLog::class, ['target_id','target_name','device_template_trigger_id'], ['target_id','target_name','device_template_trigger_id']) 
+            ->orderBy('is_resolved','ASC')->orderBy('id', 'desc');
     }
 }
