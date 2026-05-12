@@ -313,20 +313,28 @@ class DeviceAccountController extends _CommonController
             
             DeviceAccountHelper::$target_name = $request->target_name;
             DeviceAccountHelper::$target_id = $request->target_id;
-            DeviceAccountHelper::$command = "remove";
+            DeviceAccountHelper::$command = "active";
             DeviceAccountHelper::$trigger = $trigger;
 
             if($result["status"] != 1){
                 DeviceAccountHelper::fail_trigger_log(
                     $result,
-                    "Remove Failed: ".$result["message"]
+                    "Activate Failed: ".$result["message"]
                 );
+                
+                PayModelHelper::update($device_account, $request, [
+                    "is_active"=>true,
+                    "active_info"=>$result["message"]
+                ]);
             }
             else{  
                 DeviceAccountHelper::success_trigger_log(
                     $result,
-                    "Remove for ".$request->target_name
+                    "Activate for ".$request->target_name
                 );
+                PayModelHelper::update($device_account, $request, [
+                    "active_info"=>$result["message"]
+                ]);
             }
             return $result;
         }
@@ -409,12 +417,19 @@ class DeviceAccountController extends _CommonController
                     $result,
                     "Remove Failed: ".$result["message"]
                 );
+                PayModelHelper::update($device_account, $request, [
+                    "is_active"=>false,
+                    "active_info"=>$result["message"]
+                ]);
             }
             else{  
                 DeviceAccountHelper::success_trigger_log(
                     $result,
                     "Remove for ".$request->target_name
                 );
+                PayModelHelper::update($device_account, $request, [
+                    "active_info"=>$result["message"]
+                ]);
             }
             return $result;
         }
@@ -500,6 +515,9 @@ class DeviceAccountController extends _CommonController
                     $result,
                     "Remove Failed: ".$result["message"]
                 );
+                PayModelHelper::update($device_account, $request, [
+                    "active_info"=>$result["message"]
+                ]);
             }
             else{  
                 DeviceAccountHelper::success_trigger_log(
