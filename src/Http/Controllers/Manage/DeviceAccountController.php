@@ -321,9 +321,7 @@ class DeviceAccountController extends _CommonController
                     $result,
                     "Activate Failed: ".$result["message"]
                 );
-                
                 PayModelHelper::update($device_account, $request, [
-                    "is_active"=>true,
                     "active_info"=>$result["message"]
                 ]);
             }
@@ -332,7 +330,9 @@ class DeviceAccountController extends _CommonController
                     $result,
                     "Activate for ".$request->target_name
                 );
+                
                 PayModelHelper::update($device_account, $request, [
+                    "is_active"=>true,
                     "active_info"=>$result["message"]
                 ]);
             }
@@ -418,7 +418,6 @@ class DeviceAccountController extends _CommonController
                     "Remove Failed: ".$result["message"]
                 );
                 PayModelHelper::update($device_account, $request, [
-                    "is_active"=>false,
                     "active_info"=>$result["message"]
                 ]);
             }
@@ -428,6 +427,7 @@ class DeviceAccountController extends _CommonController
                     "Remove for ".$request->target_name
                 );
                 PayModelHelper::update($device_account, $request, [
+                    "is_active"=>false,
                     "active_info"=>$result["message"]
                 ]);
             }
