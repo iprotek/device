@@ -488,9 +488,9 @@ class DeviceAccountHelper {
                             $result,
                             "Active for $target_name"
                         );
-                        
+
                         $deviceAccount->update([
-                            "is_active"=>false,
+                            "is_active"=>true,
                             "active_info"=>$result["message"]
                         ]);
                     }
