@@ -477,13 +477,22 @@ class DeviceAccountHelper {
                             $result,
                             "Active Failed: ".$result["message"]
                         );
-                        return $result;
+                        //return $result;
+                        
+                        $deviceAccount->update([
+                            "active_info"=>$result["message"]
+                        ]);
                     }
                     else{                  
                         static::success_trigger_log(
                             $result,
                             "Active for $target_name"
                         );
+                        
+                        $deviceAccount->update([
+                            "is_active"=>false,
+                            "active_info"=>$result["message"]
+                        ]);
                     }
                     continue;
                 }
@@ -595,13 +604,20 @@ class DeviceAccountHelper {
                             $result,
                             "Inactive Failed: ".$result["message"]
                         );
-                        return $result;
+                        $deviceAccount->update([
+                            "active_info"=>$result["message"]
+                        ]);
+                        //return $result;
                     }
                     else{                  
                         static::success_trigger_log(
                             $result,
                             "Inactive for $target_name"
                         );
+                        $deviceAccount->update([
+                            "is_active"=>false,
+                            "active_info"=>$result["message"]
+                        ]);
                     }
                     continue;
                 }
