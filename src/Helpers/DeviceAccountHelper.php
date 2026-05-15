@@ -480,7 +480,7 @@ class DeviceAccountHelper {
                         //return $result;
                         
                         $deviceAccount->update([
-                            "active_info"=>$result["message"]
+                            "active_info"=>"Failed:".$result["message"]
                         ]);
                     }
                     else{                  
@@ -491,7 +491,7 @@ class DeviceAccountHelper {
 
                         $deviceAccount->update([
                             "is_active"=>true,
-                            "active_info"=>$result["message"]
+                            "active_info"=>"Success:".$result["message"]
                         ]);
                     }
                     continue;
@@ -605,7 +605,7 @@ class DeviceAccountHelper {
                             "Inactive Failed: ".$result["message"]
                         );
                         $deviceAccount->update([
-                            "active_info"=>$result["message"]
+                            "active_info"=>"Failed:".$result["message"]
                         ]);
                         //return $result;
                     }
@@ -616,7 +616,7 @@ class DeviceAccountHelper {
                         );
                         $deviceAccount->update([
                             "is_active"=>false,
-                            "active_info"=>$result["message"]
+                            "active_info"=>"Succeed:".$result["message"]
                         ]);
                     }
                     continue;

@@ -370,13 +370,14 @@ class MikrotikHelper
             "target_name"=>$target_name,
             "target_id"=>$target_id,
             "account_id"=>$addedId,
-            "is_active"=>1,
+            "is_active"=>true,
             "active_info"=>"Regisration Successfull"
         ];
 
         if($request){
             PayModelHelper::create( DeviceAccount::class, $request, $requestData);
         }else{
+            $requestData["group_id"] = $deviceTrigger->group_id;
             DeviceAccount::create($requestData);
         }
         //GETTING THE DESIRED ID RESULT        
@@ -426,7 +427,7 @@ class MikrotikHelper
                     "target_name"=>$target_name,
                     "target_id"=>$target_id,
                     "account_id"=>$checkRegResult["id"],
-                    "is_active"=>1,
+                    "is_active"=>true,
                     "active_info"=>"Linked account"
                 ]);
             }else{
@@ -436,7 +437,7 @@ class MikrotikHelper
                     "target_name"=>$target_name,
                     "target_id"=>$target_id,
                     "account_id"=>$checkRegResult["id"],
-                    "is_active"=>1,
+                    "is_active"=>true,
                     "active_info"=>"Linked account"
                 ]);
             }
