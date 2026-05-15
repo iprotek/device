@@ -656,10 +656,10 @@ class MikrotikHelper
             if($status == "1"){
                 if($request){
                     PayModelHelper::update($deviceAccount, $request, [
-                        "is_active"=>false
+                        "is_active"=>true
                     ]);
                 }else{
-                    $deviceAccount->is_active = false;
+                    $deviceAccount->is_active = true;
                     $deviceAccount->save();
                 }
             }
