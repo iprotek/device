@@ -551,33 +551,34 @@ class MikrotikHelper
             
             $result = MikrotikScriptHelper::executeNow($commandStr, $client, false);
 
-            if($result["status"] != 1){
-                return $result;
-            }
-
             $status = $result["status"];
             $message = "Account has now updated.";
+
+            if($result["status"] != 1){
+               $status = 0;
+               $message = $result["message"] ?? "Something goes wrong.";
+            }else{
             
-            $context = $result["context"];
-            if(!$context){
-                return ["status"=>0, "message"=>"Please contact administrator for the error."];
-            }
-
-            if( isset( $context["_status"] ) )
-                $status = $context["_status"] == "1" ? 1:0;
-
-            if( isset( $context["_message"] ) )
-                $message = $context["_message"];
-
-            if($status == "1"){
-                if($request){
-                    PayModelHelper::update($deviceAccount, $request, [
-                        "is_active"=>false
-                    ]);
-                }else{
-                    $deviceAccount->is_active = false;
-                    $deviceAccount->save();
+                $context = $result["context"];
+                if(!isset($result["context"])){
+                    $status = 0;
+                    $message = "Please contact administrator for the error.";
                 }
+                else{
+                    if( isset( $context["_status"] ) )
+                        $status = $context["_status"] == "1" ? 1:0;
+
+                    if( isset( $context["_message"] ) )
+                        $message = $context["_message"];
+                }
+            }
+            if($request){
+                PayModelHelper::update($deviceAccount, $request, [
+                    "active_info"=>$message
+                ]);
+            }else{
+                $deviceAccount->active_info = $message;
+                $deviceAccount->save();
             }
 
             return ["status"=>$status, "message"=>$message];
