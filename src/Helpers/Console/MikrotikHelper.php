@@ -139,13 +139,17 @@ class MikrotikHelper
         $testVar = explode(' ', trim($cliCommand));
         $baseCommand = array_shift( $testVar );
         //preg_match('/^([^\s]+)/', $cliCommand, $parts);
-        preg_match_all('/([^\s=]+)="([^"]*)"/', $cliCommand, $matches, PREG_SET_ORDER);
+        // /ip/dhcp-client/lease/print mac-address~"^00:00:12:f6" ip="192.168.3.4"
+        //preg_match_all('/([^\s=]+)="([^"]*)"/', $cliCommand, $matches, PREG_SET_ORDER);
+        preg_match_all('/([^\s=~]+)\s*[=~]\s*"([^"]*)"/', $cliCommand, $matches, PREG_SET_ORDER);
         $parts = [];
         foreach($matches as $match){
             if($match[0]){
                 $parts[] = $match[0];
             }
         }
+
+        Log::error($parts);
 
         // Extract the base command (e.g., "/ppp/secret/add")
         //$baseCommand = array_shift($parts);
@@ -156,15 +160,6 @@ class MikrotikHelper
         // Parse parameters (e.g., name="user1" password="1234")
         $is_where = preg_match('#^/\S+/print(\s|$)#', $baseCommand) ? true : false;
         foreach ($parts as $part) {
-
-            /*
-            if(strtolower($part) == 'where'){
-                $is_where = true;
-            }
-            else if(strpos($part, '=') === false && strpos($part, '~') === false){
-                $is_where = false;
-            }
-            */
 
             if (strpos($part, '=') !== false) {
                 list($key, $value) = explode('=', $part, 2);
