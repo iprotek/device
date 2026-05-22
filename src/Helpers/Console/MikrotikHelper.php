@@ -149,11 +149,6 @@ class MikrotikHelper
             }
         }
 
-        Log::error($parts);
-
-        // Extract the base command (e.g., "/ppp/secret/add")
-        //$baseCommand = array_shift($parts);
-
         // Create the API Query object
         $query = new MikroTikQuery($baseCommand);
 
