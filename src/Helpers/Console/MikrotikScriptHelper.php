@@ -416,7 +416,8 @@ class MikrotikScriptHelper
         // 1. Collect all headers dynamically
         $headers = [];
         foreach ($data as $row) {
-            $headers = array_unique(array_merge($headers, array_keys($row)));
+            if(is_array($row))
+              $headers = array_unique(array_merge($headers, array_keys($row)));
         }
 
         // 2. Build final table
