@@ -43,6 +43,7 @@ class DeviceVariableHelper
             $instance = null;
             $order = null;
             $order_by = null;
+            $limit = null;
 
             foreach($fieldValues as $key=>$value){
                 if(!$key || !trim($key)) continue;
@@ -54,6 +55,7 @@ class DeviceVariableHelper
                 else if($key == 'instance') $instance = $value;
                 else if($key == 'order') $order = $value;
                 else if($key == 'order-by') $order_by = $value;
+                else if($key == 'limit') $limit = $value;
             }
             
             $str = "";
@@ -82,6 +84,11 @@ class DeviceVariableHelper
             if($connector && trim($connector)){
                 $str = str_replace(' ', $connector, $str);
             }
+
+            if($limit && is_numeric($limit) && $str){
+                $str = substr($str, 0, $limit);
+            }
+
             $result = str_replace($matching_string, $str, $sample);
 
             //recheck if still exists.
