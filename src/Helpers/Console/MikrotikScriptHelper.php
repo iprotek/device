@@ -256,7 +256,6 @@ class MikrotikScriptHelper
                 ];
         } 
 
-
         // Extract command
         //preg_match('/^(\/[^\s]+)/', $line, $cmdMatch);
         //$command = $cmdMatch[1] ?? null;
@@ -273,6 +272,7 @@ class MikrotikScriptHelper
         $setVars = isset($setMatch[1])
             ? array_map('trim', explode(',', $setMatch[1]))
             : []; 
+            
         //return ["status"=>0, "message"=>"GG".implode(',', $getFields)];
         $line_clean = str_replace($getMatch[0], '',  $line_value);
         $line_clean = str_replace($setMatch[0], '',  $line_clean);
@@ -281,12 +281,8 @@ class MikrotikScriptHelper
         if ( count($getFields) <=0 || count($getFields) !== count($setVars)) {
             return ["status"=>0, "message"=>"Please make get and set same parameter count at <b>".$line."</b>"];
         }
-
-        // Execute RouterOS query
         
-        //return ["status"=>0, "message"=>"Error: $line converted ".$line_value." ".implode(',',$setMatch)];
-        
-        $query = MikrotikHelper::convertCliToApiQuery($line_clean, function($baseLine, $keyValues)use($client){
+        $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
             return MikrotikHelper::find_command($client, $baseLine, $keyValues);
         });
 
@@ -303,7 +299,7 @@ class MikrotikScriptHelper
         }
 
         $row = $response[0] ?? [];
-
+        
         // Mapping logic
         if (!empty($getFields) && !empty($setVars)) {
 
@@ -381,14 +377,13 @@ class MikrotikScriptHelper
             return ["status"=>0, "message"=>"Something goes wrong $line => $line_value"];
         }
 
-
-
         $query = MikrotikHelper::convertCliToApiQuery($line_value, function($baseLine, $keyValues)use($client){
             return MikrotikHelper::find_command($client, $baseLine, $keyValues);
         });
 
         $response =  $client->query($query['query'])->read();
         $status = 1;
+        
         if(is_array($response) && isset($response['after']) && isset($response['after']['message'])){
             
             $data = [
@@ -481,6 +476,7 @@ class MikrotikScriptHelper
 
     static function executeCommand($line, &$context, &$tables, $client)
     {
+        
         if ( preg_match('#^/\S+/print(\s|$)#', $line) && (stripos($line, '--set') !== false || stripos($line, '--get') !== false) ){
             //return ["status"=>0, "message"=>"GETSET".$line];
             return static::getSetRead($line, $context, $client);

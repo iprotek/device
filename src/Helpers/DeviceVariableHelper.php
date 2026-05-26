@@ -130,6 +130,7 @@ class DeviceVariableHelper
         return $template_str;
 
     }
+
     //fn should return string values
     static function find($template_str, callable $fn=null ){
 
@@ -146,13 +147,25 @@ class DeviceVariableHelper
             $attributesString = $outerMatches[1];
             // 3. Extract key="value" pairs
             // Added \. to the character class to support keys like .id
-            $pattern = '/([\.\w-]+)="([^"]*)"/';
-            //OLD: $pattern = '/([\w-]+)="([^"]*)"/';
             
-            if (preg_match_all($pattern, $attributesString, $innerMatches)) {
-                // Combine the keys ($innerMatches[1]) and values ($innerMatches[2])
-                $fieldValues = array_combine($innerMatches[1], $innerMatches[2]);
+            //OLD:
+            $pattern = '/([a-zA-Z0-9._-]+)\s*(~=|!=|>=|<=|=|~)\s*"([^"]*)"/';
+            preg_match_all($pattern, $attributesString, $matches);
+            $count = count($matches[0]);
+            for ($i = 0; $i < $count; $i++) {
+                $value = $matches[3][$i];
+                $operator =  $matches[2][$i];
+                $key = $matches[1][$i];
+                if($operator == '~')
+                    $value = "/$value/";
+                $fieldValues[] = [
+                    'key' => $key,
+                    'operator' => $operator,
+                    'value' => $value,
+                ];
+
             }
+
         }else{
             return $template_str;
         }

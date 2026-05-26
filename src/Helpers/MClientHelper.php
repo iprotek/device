@@ -27,16 +27,13 @@ class MClientHelper extends Client {
         $filtered_result = $result;
         foreach($this->expressions as $expr ){
             if($expr['operator'] === '~' ){
-                $filtered_result = array_filter($filtered_result, function($item)use($expr){
+                $filtered_result = array_values( array_filter($filtered_result, function($item)use($expr){
                     try{
                         if(!isset($item[$expr['key']]) ){
                             return false;
                         }
                         $pattern = $expr['pattern'];
                         $value = $item[$expr['key']];
-                        //var_dump($pattern);
-                        //var_dump($value );
-                        //abort(403);
                         if (preg_match($pattern, $value)) {
                             return true;
                         }
@@ -44,7 +41,7 @@ class MClientHelper extends Client {
                         Log::error($ex->getMessage());
                     }
                     return false;
-                });
+                }) );
             }
         }
         return $filtered_result;

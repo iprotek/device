@@ -108,8 +108,19 @@ class MikrotikHelper
     public static function find_command($client, $baseLine, $keyValues){
         $query = new MikroTikQuery($baseLine);
         //$query->operations('&');
-        foreach ($keyValues as $key => $value) {
-            $query->where($key, $value);
+        /* OLD:
+        foreach ($keyValues as $key=>$val) {
+            $query->where($key, $val);
+        }
+        */
+        foreach ($keyValues as $keyVal) {
+            $key = trim( $keyVal['key'] );
+            $operator = trim( $keyVal['operator'] );
+            $value = trim( $keyVal['value'] );
+            if($keyVal['operator'] == '=' )
+                $query->where($key, $value);
+            else
+                $query->where($key, '~', $value);
         }
         
         $response = $client->query($query)->read();
@@ -119,9 +130,9 @@ class MikrotikHelper
             //Log::error($response);
             return '.id="E1:*0**"';
         }
-    
+        //Log::error($response);
         if(is_array($response) && count($response) > 0){
-            return ".id=\"".$response[0][".id"].'"';
+            return '.id="'.$response[0][".id"].'"';
         }
         //Log::error($response);
         return '.id="E2:*0**"';
@@ -464,6 +475,16 @@ class MikrotikHelper
                         $message = $context["_message"];
                 }
             }
+
+            
+            $_updates = $result["context"]["_updates"] ?? "";
+            if($_updates){
+                $updateResult = static::targetUpdates($_updates , $target_name, $target_id);
+                if($updateResult["status"] != 1) 
+                    return $updateResult;
+            }
+
+
             if($request){
                 PayModelHelper::update($deviceAccount, $request, [
                     "active_info"=>$message
@@ -611,6 +632,14 @@ class MikrotikHelper
                     $message = $context["_message"];
             }
 
+            //CHECKIF IF UPDATE EXISTS
+            $_updates = $result["context"]["_updates"] ?? "";
+            if($_updates){
+                $updateResult = static::targetUpdates($_updates , $target_name, $target_id);
+                if($updateResult["status"] != 1) 
+                    return $updateResult;
+            }
+
             if($status == "1"){
                 if($request){
                     PayModelHelper::update($deviceAccount, $request, [
@@ -667,6 +696,15 @@ class MikrotikHelper
 
             if( isset( $context["_message"] ) )
                 $message = $context["_message"];
+            
+            
+            //CHECKIF IF UPDATE EXISTS
+            $_updates = $result["context"]["_updates"] ?? "";
+            if($_updates){
+                $updateResult = static::targetUpdates($_updates , $target_name, $target_id);
+                if($updateResult["status"] != 1) 
+                    return $updateResult;
+            }
 
             if($status == "1"){
                 if($request)
